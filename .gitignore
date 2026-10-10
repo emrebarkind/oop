@@ -21,3 +21,4 @@ submission/test-*
 eval/runs/
 eval/out/
 eval/node_modules/
+mutants/
