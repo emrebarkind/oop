@@ -7,6 +7,7 @@ Graph:  step(code, initial) --next--> talk_<stage> (tts {{say}} + extraction) --
 import ast
 import io
 import json
+import os
 import pathlib
 import re
 import tokenize
@@ -144,8 +145,9 @@ def one_line_literal(t):
 
 
 def engine_source(spec):
-    cal = (RUNTIME / "cal.py").read_text()
-    eng = (RUNTIME / "engine.py").read_text()
+    src = pathlib.Path(os.environ.get("ENGINE_SRC_DIR") or RUNTIME)    # mutation-testing trial: embed the pristine source
+    cal = (src / "cal.py").read_text()
+    eng = (src / "engine.py").read_text()
     eng = re.sub(r"try:\s+# local tests.*?except Exception:\n    pass\n", "", eng, flags=re.S)
     eng = eng.replace("S = dict()   # injected spec", "")
     cal = cal.replace("P = dict(workdays=[0, 1, 2, 3, 4], holidays=[])", "")
