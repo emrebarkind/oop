@@ -1,0 +1,460 @@
+{
+ "openapi": "3.0.3",
+ "info": {
+  "title": "Brackwater Building Society dialler tools",
+  "version": "1.0",
+  "description": "Vendor-facing mock of the Brackwater collections platform. Codes are the ones in the brief's code list. The platform does not check the policy; the agent must."
+ },
+ "servers": [
+  {
+   "url": "https://brackwater-dialler.example.invalid/v2"
+  }
+ ],
+ "components": {},
+ "paths": {
+  "/verify_identity": {
+   "post": {
+    "summary": "Check one security answer.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "client_ref": {
+          "type": "string"
+         },
+         "check": {
+          "type": "string",
+          "enum": [
+           "DOB",
+           "HOUSE_NO"
+          ]
+         },
+         "value": {
+          "type": "string",
+          "description": "DOB: eight digits YYYYMMDD with no separators, e.g. 19790228. HOUSE_NO: the house number as digits, with any letter suffix in capitals (e.g. 14B)."
+         }
+        },
+        "required": [
+         "client_ref",
+         "check",
+         "value"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "match": {
+           "type": "boolean"
+          },
+          "remaining": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/get_account": {
+   "post": {
+    "summary": "The client's one arrears product. Refused until both checks match.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "client_ref": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "client_ref"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "products": {
+           "type": "array",
+           "maxItems": 1,
+           "items": {
+            "type": "object",
+            "properties": {
+             "agreement_no": {
+              "type": "string"
+             },
+             "product_kind": {
+              "type": "string",
+              "enum": [
+               "revolving_credit",
+               "instalment_loan"
+              ]
+             },
+             "arrears": {
+              "type": "number",
+              "description": "pounds"
+             },
+             "dpd": {
+              "type": "integer",
+              "description": "days past due"
+             },
+             "min_repay": {
+              "type": "number",
+              "description": "revolving_credit only, pounds"
+             },
+             "scheduled_instalment": {
+              "type": "number",
+              "description": "instalment_loan only, pounds"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/create_promise": {
+   "post": {
+    "summary": "Record a promise to pay (PTP).",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "client_ref": {
+          "type": "string"
+         },
+         "agreement_no": {
+          "type": "string"
+         },
+         "ptp_amount": {
+          "type": "number",
+          "description": "pounds"
+         },
+         "ptp_date": {
+          "type": "string",
+          "format": "date"
+         }
+        },
+        "required": [
+         "client_ref",
+         "agreement_no",
+         "ptp_amount",
+         "ptp_date"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "ptp_ref": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/add_note": {
+   "post": {
+    "summary": "Write an account note with a note code.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "client_ref": {
+          "type": "string"
+         },
+         "agreement_no": {
+          "type": "string"
+         },
+         "note_code": {
+          "type": "string",
+          "enum": [
+           "N-HRD",
+           "N-DSP",
+           "N-PCL"
+          ]
+         },
+         "free_text": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "client_ref",
+         "agreement_no",
+         "note_code"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/schedule_callback": {
+   "post": {
+    "summary": "Book a callback slot.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "client_ref": {
+          "type": "string"
+         },
+         "cb_date": {
+          "type": "string",
+          "format": "date"
+         },
+         "cb_time": {
+          "type": "string",
+          "description": "HH:MM"
+         }
+        },
+        "required": [
+         "client_ref",
+         "cb_date",
+         "cb_time"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/transfer_to_agent": {
+   "post": {
+    "summary": "Warm-transfer to a team.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "client_ref": {
+          "type": "string"
+         },
+         "team": {
+          "type": "string",
+          "enum": [
+           "Q-ARR",
+           "Q-GEN",
+           "Q-DSP"
+          ]
+         }
+        },
+        "required": [
+         "client_ref",
+         "team"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/close_call": {
+   "post": {
+    "summary": "Wrap the call with a disposition. Last call.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "client_ref": {
+          "type": "string"
+         },
+         "disposition": {
+          "type": "string",
+          "enum": [
+           "D10",
+           "D20",
+           "D30",
+           "D40",
+           "D50",
+           "D60"
+          ]
+         },
+         "sub_code": {
+          "type": "string",
+          "description": "From the code list. Empty for D10 and D20."
+         }
+        },
+        "required": [
+         "client_ref",
+         "disposition"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  }
+ }
+}

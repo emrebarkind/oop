@@ -1,0 +1,21 @@
+[    0.0s] START 2026-10-10T20:36:44+0000
+[    0.0s] NOTE extraction mode B
+[   83.6s] MODEL CALL #1 model=claude-opus-5-5 seconds=83.6 cost_usd=0.215 purpose: read the brief and tool API into a spec (single reading, effort high)
+[  121.8s] MODEL CALL #2 model=claude-opus-5-5 seconds=38.3 cost_usd=0.273 purpose: audit the high-risk fields of the reading against the source documents
+[  121.8s] NOTE audit: calendar: OK -- "30 November 2026 (St Andrew's Day), 25 December 2026, 28 December 2026, 1 January 2027 and 4 January 2027. 24 December 2026 is a normal business day" + memo B "Friday 11 December 2026 is added as a non-business day" -- all six dates are listed, workdays are Monday to Friday, and 24 Dec is correctly left out.
+[  121.8s] date_rules: OK -- the brief says nothing about "next <weekday>", so the default is used and noted in assumptions.
+[  121.8s] confirm: OK -- "If the answer is still unclear after a second ask, close as `no_contact` / `unclear`" → max_asks 2.
+[  121.8s] callback: OK -- "today or one of the next two business days ... must be later than `now`" + memo D "between 09:00 and 18:30, both included" + rule 5 "ask once for another time" → today/within_business_days:2, 09:00–18:30, after_now, max_asks 2. Memo B also blocks 11 Dec through the holiday list.
+[  121.8s] identity.questions: OK -- "first the date of birth, then the postcode" + "eight digits, day then month then year, no separators" + "single space before its last three characters" → date_of_birth with %d%m%Y, then postcode as upper with space_before_last:3. Field values match the API enum.
+[  121.8s] identity.max_wrong: OK -- "Two wrong answers in total, across both questions, end the check" and the memo says "The two-wrong-answers limit in rule 9 also stands" → 2, not counted per question.
+[  121.8s] identity.hints: OK -- the verify_identity response has no hint field, so hints are empty. "An unreadable value is rejected with ok=false and is not counted" is handled through `ok`.
+[  121.8s] identity: OK -- date_order dmy fits "day then month then year". Rule 10 "explain once why we ask. A second refusal closes" is carried by id_why and the id_declined event. Response field names match the API.
+[  121.8s] products.amount_field: OK -- "State each product with its `arrears_amount`" → arrears_amount, and days_field is days_in_arrears.
+[  121.8s] products.floor_field: OK -- "The floor for every product type is 30% of `arrears_amount` ... `monthly_payment` field is not the floor" → empty, because the floor is a percentage.
+[  121.8s] products.floor_pct: OK -- "30% of `arrears_amount`, rounded up to the next whole pound. A result that is already a whole number of pounds stays as it is" + "Legal ... said no, so rule 17 stands" → 30 with up_unit.
+[  121.8s] products: OK -- the API gives "arrears_amount ... in pounds" and "amount_pence ... in pence" → amount_scale 1, promise_scale 100. The list, id and type fields match the API, and the names use card_last4 for credit cards.
+[  121.8s] bands: OK -- the policy table, changed by memo A "early band now covers 1 to 14 days ... mid band 15 to 30. The late band is unchanged" → early 1–14, 8th business day, 1 attempt; mid 15–30, +14 calendar days, 2 attempts; late 31–60, last business day of the month, 3 attempts, with the roll for "If today is already the last business day of the month".
+[  121.8s] ladder: OK -- "Step 1: the full `arrears_amount`, today. Step 2: the full ... on the 5th business day after today, or on the deadline if that is earlier. Step 3: the floor, on t
+[  121.8s] NOTE audit changed: nothing
+[  121.8s] NOTE validation round 1: 0 problem(s)
+[  121.8s] END 2026-10-10T20:38:46+0000 total_seconds=121.8 model_calls=2 model_cost_usd=0.49

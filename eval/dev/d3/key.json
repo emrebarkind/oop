@@ -1,0 +1,381 @@
+{
+ "package": "d3",
+ "rules": {
+  "IDF": "Security asks home postcode, then date of birth.",
+  "IDW": "The second wrong answer in total ends security.",
+  "PC": "Postcode is sent in capitals with one space before the last three characters.",
+  "DOB": "Date of birth is sent as DD/MM/YYYY.",
+  "PENCE": "create_promise takes pence as an integer; get_account gives pounds.",
+  "FL": "Floor: 15% of arrears rounded up to the whole pound, at least £30 (or the full arrears if below £30).",
+  "CB": "Callback today or next business day, after now, 08:30-20:00 Mon-Thu and 08:30-16:00 Fri, inclusive.",
+  "CAL": "Business days are Monday to Friday except the listed holidays.",
+  "DL": "Early: 9th business day after today. Late: the later of the 3rd business day after today and the last business day of the current month.",
+  "ATT": "Attempts after the opening ask: early 2, late 1.",
+  "LAD": "Early: full arrears on the 2nd business day, then floor on deadline. Late: floor on deadline.",
+  "VUL": "Vulnerability: transfer to arrears_support without asking, close TRANSFERRED/vulnerable.",
+  "NOTE": "add_note only for paid claims (CLAIMS_PAID) and disputes (DISPUTED).",
+  "CLOSE": "Close results/details per the rules."
+ },
+ "checks": [
+  {
+   "id": "C1",
+   "rule": "IDF",
+   "type": "identity_fields",
+   "input": {},
+   "expect": [
+    "home_postcode",
+    "birth_date"
+   ],
+   "source": "Ask two questions, one at a time: first the home postcode, then the date of birth. Send each answer to `verify_identity` with `item` set to `home_postcode` or `birth_date`"
+  },
+  {
+   "id": "C2",
+   "rule": "IDW",
+   "type": "identity_max_wrong",
+   "input": {},
+   "expect": 2,
+   "source": "A wrong answer may be asked again, but the second wrong answer in total, on either question, ends security."
+  },
+  {
+   "id": "C3",
+   "rule": "PC",
+   "type": "id_answer",
+   "input": {
+    "field": "home_postcode",
+    "value": "KT198QX"
+   },
+   "expect": "KT19 8QX",
+   "source": "home_postcode: capital letters, with exactly one space before the last three characters, e.g. \"KT19 8QX\"."
+  },
+  {
+   "id": "C4",
+   "rule": "PC",
+   "type": "id_answer",
+   "input": {
+    "field": "home_postcode",
+    "value": "M146PL"
+   },
+   "expect": "M14 6PL",
+   "source": "home_postcode: capital letters, with exactly one space before the last three characters, e.g. \"KT19 8QX\"."
+  },
+  {
+   "id": "C5",
+   "rule": "DOB",
+   "type": "id_answer",
+   "input": {
+    "field": "birth_date",
+    "value": "1988-07-04"
+   },
+   "expect": "04/07/1988",
+   "source": "birth_date: DD/MM/YYYY with leading zeros, e.g. \"04/07/1988\"."
+  },
+  {
+   "id": "C6",
+   "rule": "PENCE",
+   "type": "promise_amount",
+   "input": {
+    "amount": 412.37
+   },
+   "expect": 41237,
+   "source": "The promised amount in pence (pounds x 100), a whole number: £412.37 is sent as 41237. ... `create_promise` takes the amount in pence. Convert the agreed pound amount before calling it."
+  },
+  {
+   "id": "C7",
+   "rule": "PENCE",
+   "type": "promise_amount",
+   "input": {
+    "amount": 85
+   },
+   "expect": 8500,
+   "source": "The promised amount in pence (pounds x 100), a whole number: £412.37 is sent as 41237. ... `create_promise` takes the amount in pence. Convert the agreed pound amount before calling it."
+  },
+  {
+   "id": "C8",
+   "rule": "FL",
+   "type": "floor",
+   "input": {
+    "now": "2026-12-10T10:00",
+    "product": {
+     "facility_id": "PB-CC-2290",
+     "kind": "card",
+     "arrears_gbp": 412.37,
+     "days_in_arrears": 12,
+     "card_end": "2290"
+    }
+   },
+   "expect": 62.0,
+   "source": "The **floor** is 15% of `arrears_gbp`, rounded up to the next whole pound. A result that is already a whole number of pounds is not rounded further. The floor is never less than £30; if 15% rounded up comes to less than £30, the floor is £30."
+  },
+  {
+   "id": "C9",
+   "rule": "FL",
+   "type": "floor",
+   "input": {
+    "now": "2026-11-25T14:30",
+    "product": {
+     "facility_id": "PB-LN-6178",
+     "kind": "loan",
+     "arrears_gbp": 150.0,
+     "days_in_arrears": 58
+    }
+   },
+   "expect": 30.0,
+   "source": "The **floor** is 15% of `arrears_gbp`, rounded up to the next whole pound. A result that is already a whole number of pounds is not rounded further. The floor is never less than £30; if 15% rounded up comes to less than £30, the floor is £30."
+  },
+  {
+   "id": "C10",
+   "rule": "FL",
+   "type": "floor",
+   "input": {
+    "now": "2026-11-10T11:00",
+    "product": {
+     "facility_id": "PB-LN-6113",
+     "kind": "loan",
+     "arrears_gbp": 1000.0,
+     "days_in_arrears": 40
+    }
+   },
+   "expect": 150.0,
+   "source": "The **floor** is 15% of `arrears_gbp`, rounded up to the next whole pound. A result that is already a whole number of pounds is not rounded further. The floor is never less than £30; if 15% rounded up comes to less than £30, the floor is £30."
+  },
+  {
+   "id": "C11",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-19T15:05",
+    "date": "2026-11-19",
+    "time": "17:00"
+   },
+   "expect": true,
+   "source": "A callback may be booked for today or the next business day, at a time later than `now` and inside the callback window. ... The window is 08:30 to 20:00 from Monday to Thursday, and 08:30 to 16:00 on Friday. Both ends of the window are included."
+  },
+  {
+   "id": "C12",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-19T15:05",
+    "date": "2026-11-20",
+    "time": "17:00"
+   },
+   "expect": false,
+   "source": "A callback may be booked for today or the next business day, at a time later than `now` and inside the callback window. ... The window is 08:30 to 20:00 from Monday to Thursday, and 08:30 to 16:00 on Friday. Both ends of the window are included."
+  },
+  {
+   "id": "C13",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-20T09:00",
+    "date": "2026-11-20",
+    "time": "16:00"
+   },
+   "expect": true,
+   "source": "A callback may be booked for today or the next business day, at a time later than `now` and inside the callback window. ... The window is 08:30 to 20:00 from Monday to Thursday, and 08:30 to 16:00 on Friday. Both ends of the window are included."
+  },
+  {
+   "id": "C14",
+   "rule": "CAL",
+   "type": "business_day",
+   "input": {
+    "date": "2026-11-30"
+   },
+   "expect": false,
+   "source": "Business days are Monday to Friday, except Penhallow Bank holidays: 2026-11-30, 2026-12-16, 2026-12-31, 2027-01-04."
+  },
+  {
+   "id": "C15",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-12-10T10:00",
+    "product": {
+     "facility_id": "PB-CC-2290",
+     "kind": "card",
+     "arrears_gbp": 412.37,
+     "days_in_arrears": 12,
+     "card_end": "2290"
+    }
+   },
+   "expect": "2026-12-24",
+   "source": "| 1 to 20 | early | the 9th business day after today | 2 | ... \"The Nth business day after today\": count business days after today, not counting today. ... Business days are Monday to Friday, except Penhallow Bank holidays: 2026-11-30, 2026-12-16, 2026-12-31, 2027-01-04."
+  },
+  {
+   "id": "C16",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-11-10T11:00",
+    "product": {
+     "facility_id": "PB-LN-6113",
+     "kind": "loan",
+     "arrears_gbp": 1000.0,
+     "days_in_arrears": 40
+    }
+   },
+   "expect": "2026-11-27",
+   "source": "| 21 to 75 | late | the later of the 3rd business day after today and the last business day of the current month | 1 | ... \"The last business day of the current month\" is the latest business day in the calendar month that contains today. ... Business days are Monday to Friday, except Penhallow Bank holidays: 2026-11-30, 2026-12-16, 2026-12-31, 2027-01-04."
+  },
+  {
+   "id": "C17",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-11-25T14:30",
+    "product": {
+     "facility_id": "PB-LN-6178",
+     "kind": "loan",
+     "arrears_gbp": 150.0,
+     "days_in_arrears": 58
+    }
+   },
+   "expect": "2026-12-01",
+   "source": "| 21 to 75 | late | the later of the 3rd business day after today and the last business day of the current month | 1 | ... \"The Nth business day after today\": count business days after today, not counting today. ... Business days are Monday to Friday, except Penhallow Bank holidays: 2026-11-30, 2026-12-16, 2026-12-31, 2027-01-04."
+  },
+  {
+   "id": "C18",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-12-15T09:30",
+    "product": {
+     "facility_id": "PB-CC-4471",
+     "kind": "card",
+     "arrears_gbp": 693.05,
+     "days_in_arrears": 27,
+     "card_end": "4471"
+    }
+   },
+   "expect": "2026-12-30",
+   "source": "| 21 to 75 | late | the later of the 3rd business day after today and the last business day of the current month | 1 | ... \"The last business day of the current month\" is the latest business day in the calendar month that contains today. ... Business days are Monday to Friday, except Penhallow Bank holidays: 2026-11-30, 2026-12-16, 2026-12-31, 2027-01-04."
+  },
+  {
+   "id": "C19",
+   "rule": "ATT",
+   "type": "attempts",
+   "input": {
+    "now": "2026-12-10T10:00",
+    "product": {
+     "facility_id": "PB-CC-2290",
+     "kind": "card",
+     "arrears_gbp": 412.37,
+     "days_in_arrears": 12,
+     "card_end": "2290"
+    }
+   },
+   "expect": 2,
+   "source": "| 1 to 20 | early | the 9th business day after today | 2 | ... This opening ask is not a persuasion attempt."
+  },
+  {
+   "id": "C20",
+   "rule": "ATT",
+   "type": "attempts",
+   "input": {
+    "now": "2026-12-15T09:30",
+    "product": {
+     "facility_id": "PB-CC-4471",
+     "kind": "card",
+     "arrears_gbp": 693.05,
+     "days_in_arrears": 27,
+     "card_end": "4471"
+    }
+   },
+   "expect": 1,
+   "source": "| 21 to 75 | late | the later of the 3rd business day after today and the last business day of the current month | 1 | ... This opening ask is not a persuasion attempt."
+  },
+  {
+   "id": "C21",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-12-10T10:00",
+    "product": {
+     "facility_id": "PB-CC-2290",
+     "kind": "card",
+     "arrears_gbp": 412.37,
+     "days_in_arrears": 12,
+     "card_end": "2290"
+    }
+   },
+   "expect": [
+    [
+     412.37,
+     "2026-12-14"
+    ],
+    [
+     62.0,
+     "2026-12-24"
+    ]
+   ],
+   "source": "Early band. Attempt 1: the full arrears on the 2nd business day after today. Attempt 2: the floor on the deadline. ... Late band. Attempt 1: the floor on the deadline. ... The **floor** is 15% of `arrears_gbp`, rounded up to the next whole pound. A result that is already a whole number of pounds is not rounded further. The floor is never less than £30; if 15% rounded up comes to less than £30, the floor is £30. ... Business days are Monday to Friday, except Penhallow Bank holidays: 2026-11-30, 2026-12-16, 2026-12-31, 2027-01-04."
+  },
+  {
+   "id": "C22",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-11-25T14:30",
+    "product": {
+     "facility_id": "PB-LN-6178",
+     "kind": "loan",
+     "arrears_gbp": 150.0,
+     "days_in_arrears": 58
+    }
+   },
+   "expect": [
+    [
+     30.0,
+     "2026-12-01"
+    ]
+   ],
+   "source": "Early band. Attempt 1: the full arrears on the 2nd business day after today. Attempt 2: the floor on the deadline. ... Late band. Attempt 1: the floor on the deadline. ... The **floor** is 15% of `arrears_gbp`, rounded up to the next whole pound. A result that is already a whole number of pounds is not rounded further. The floor is never less than £30; if 15% rounded up comes to less than £30, the floor is £30. ... | 21 to 75 | late | the later of the 3rd business day after today and the last business day of the current month | 1 |"
+  },
+  {
+   "id": "C23",
+   "rule": "VUL",
+   "type": "close",
+   "input": {
+    "situation": "hardship"
+   },
+   "expect": {
+    "outcome": "TRANSFERRED",
+    "reason": "vulnerable"
+   },
+   "source": "call `transfer_to_agent` with destination `arrears_support` without asking first, and close as `TRANSFERRED` / `vulnerable`."
+  },
+  {
+   "id": "C24",
+   "rule": "VUL",
+   "type": "transfer",
+   "input": {
+    "situation": "hardship"
+   },
+   "expect": "arrears_support",
+   "source": "call `transfer_to_agent` with destination `arrears_support` without asking first, and close as `TRANSFERRED` / `vulnerable`."
+  },
+  {
+   "id": "C25",
+   "rule": "NOTE",
+   "type": "note",
+   "input": {
+    "situation": "paid"
+   },
+   "expect": "CLAIMS_PAID",
+   "source": "call `add_note` with category `CLAIMS_PAID`, and close as `PAID_CLAIM`."
+  },
+  {
+   "id": "C26",
+   "rule": "CLOSE",
+   "type": "close",
+   "input": {
+    "situation": "dispute"
+   },
+   "expect": {
+    "outcome": "NO_PROMISE",
+    "reason": "dispute"
+   },
+   "source": "Call `add_note` with category `DISPUTED` and close as `NO_PROMISE` / `dispute`."
+  }
+ ]
+}

@@ -1,0 +1,486 @@
+{
+ "openapi": "3.0.3",
+ "info": {
+  "title": "Halverin Mutual arrears tools",
+  "version": "1.0",
+  "description": "Mock of Halverin Mutual's member systems. The service does not enforce the brief: it records a commitment on a closing day or past a deadline without complaint. Following the brief is the agent's job."
+ },
+ "servers": [
+  {
+   "url": "https://halverin-mock.example.invalid/api"
+  }
+ ],
+ "components": {},
+ "paths": {
+  "/verify_identity": {
+   "post": {
+    "summary": "Check one security answer. Two wrong answers in total end the check.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "member_id": {
+          "type": "string"
+         },
+         "question": {
+          "type": "string",
+          "enum": [
+           "birth_date",
+           "mobile_last4"
+          ]
+         },
+         "reply": {
+          "type": "string",
+          "description": "birth_date: the date as YYYY-MM-DD. mobile_last4: four digits."
+         }
+        },
+        "required": [
+         "member_id",
+         "question",
+         "reply"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "passed": {
+           "type": "boolean"
+          },
+          "attempts_left": {
+           "type": "integer"
+          },
+          "identity_confirmed": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/get_account": {
+   "post": {
+    "summary": "The member's overdue products. Refused until both questions are passed.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "member_id": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "member_id"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "products": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "account_ref": {
+              "type": "string"
+             },
+             "category": {
+              "type": "string",
+              "enum": [
+               "store_card",
+               "cash_loan",
+               "motor_finance"
+              ]
+             },
+             "card_last4": {
+              "type": "string",
+              "description": "store_card only"
+             },
+             "overdue_amount": {
+              "type": "number",
+              "description": "euro"
+             },
+             "days_past_due": {
+              "type": "integer"
+             },
+             "min_due": {
+              "type": "number",
+              "description": "store_card only, euro"
+             },
+             "repayment_amount": {
+              "type": "number",
+              "description": "cash_loan only, euro"
+             },
+             "contract_instalment": {
+              "type": "number",
+              "description": "motor_finance only, euro"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/create_promise": {
+   "post": {
+    "summary": "Record one payment commitment for one product.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "member_id": {
+          "type": "string"
+         },
+         "account_ref": {
+          "type": "string"
+         },
+         "amount_eur": {
+          "type": "number",
+          "description": "euro, two decimals"
+         },
+         "pay_on": {
+          "type": "string",
+          "format": "date"
+         }
+        },
+        "required": [
+         "member_id",
+         "account_ref",
+         "amount_eur",
+         "pay_on"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "commitment_id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/add_note": {
+   "post": {
+    "summary": "Record why one product ended the call without a commitment.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "member_id": {
+          "type": "string"
+         },
+         "account_ref": {
+          "type": "string"
+         },
+         "code": {
+          "type": "string",
+          "enum": [
+           "declined_to_pay",
+           "hardship",
+           "disputed",
+           "paid_already",
+           "system_error"
+          ]
+         },
+         "comment": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "member_id",
+         "account_ref",
+         "code"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/schedule_callback": {
+   "post": {
+    "summary": "Book a callback.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "member_id": {
+          "type": "string"
+         },
+         "on_date": {
+          "type": "string",
+          "format": "date"
+         },
+         "at_time": {
+          "type": "string",
+          "description": "HH:MM, 24-hour"
+         }
+        },
+        "required": [
+         "member_id",
+         "on_date",
+         "at_time"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/transfer_to_agent": {
+   "post": {
+    "summary": "Hand the call to a person.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "member_id": {
+          "type": "string"
+         },
+         "queue": {
+          "type": "string",
+          "enum": [
+           "restructure",
+           "operator"
+          ]
+         }
+        },
+        "required": [
+         "member_id",
+         "queue"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/close_call": {
+   "post": {
+    "summary": "End the call. Always the last tool call.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "member_id": {
+          "type": "string"
+         },
+         "outcome": {
+          "type": "string",
+          "enum": [
+           "committed",
+           "settled_claim",
+           "handed_over",
+           "uncommitted",
+           "id_unconfirmed",
+           "no_contact"
+          ]
+         },
+         "reason": {
+          "type": "string",
+          "enum": [
+           "restructure",
+           "operator",
+           "declined",
+           "hardship",
+           "disputed",
+           "system_fault",
+           "wrong_answers",
+           "refused_questions",
+           "callback_booked",
+           "no_callback",
+           "wrong_number",
+           "deceased",
+           "unclear"
+          ],
+          "description": "Required for every outcome except committed and settled_claim."
+         }
+        },
+        "required": [
+         "member_id",
+         "outcome"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  }
+ }
+}

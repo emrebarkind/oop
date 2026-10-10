@@ -1,0 +1,422 @@
+{
+ "package": "d1",
+ "rules": {
+  "IDF": "Ask date of birth, then the last four digits of the mobile number.",
+  "IDW": "Two wrong answers in total end the identity check.",
+  "CAL": "Business days are Monday to Friday except the listed closing days.",
+  "CB": "A callback is today or one of the next two business days, 09:30 to 18:30 inclusive, and later than now.",
+  "DL": "Each product's deadline is the Nth business day after today, N from its band (early 10, middle 6, late 3).",
+  "FL": "The floor is min_due for a store card, repayment_amount for a cash loan, contract_instalment for motor finance.",
+  "ATT": "Persuasion attempts after the opening ask are 1, 2, 3 for early, middle, late; the opening ask does not count.",
+  "LAD": "Ladder: full amount on the next business day; then max(half rounded down to the euro, floor) on the deadline; then the floor on the deadline; no repeated offer.",
+  "NOTE": "Each product ending without a commitment gets one note with its code; no notes on a transfer.",
+  "CLOSE": "Close codes follow the closing table.",
+  "XFER": "Restructure requests transfer to queue restructure, insisted requests for a person to queue operator."
+ },
+ "checks": [
+  {
+   "id": "C1",
+   "rule": "IDF",
+   "type": "identity_fields",
+   "input": {},
+   "expect": [
+    "birth_date",
+    "mobile_last4"
+   ],
+   "source": "Ask two questions, one at a time: first the date of birth, then the last four digits of the member's mobile number. Call `verify_identity` once per answer, with `question` set to `birth_date` or `mobile_last4`."
+  },
+  {
+   "id": "C2",
+   "rule": "IDW",
+   "type": "identity_max_wrong",
+   "input": {},
+   "expect": 2,
+   "source": "A wrong answer may be asked again, but two wrong answers in total end the check."
+  },
+  {
+   "id": "C3",
+   "rule": "CAL",
+   "type": "business_day",
+   "input": {
+    "date": "2026-12-08"
+   },
+   "expect": false,
+   "source": "Business days are Monday to Friday, except these Halverin Mutual closing days: 2026-11-13, 2026-12-01, 2026-12-08, 2026-12-24, 2026-12-28."
+  },
+  {
+   "id": "C4",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-12T11:00",
+    "date": "2026-11-16",
+    "time": "10:00"
+   },
+   "expect": true,
+   "source": "A callback may be booked for today or for one of the next two business days, at a time from 09:30 to 18:30, both included, and later than `now`. ... Business days are Monday to Friday, except these Halverin Mutual closing days: 2026-11-13, 2026-12-01, 2026-12-08, 2026-12-24, 2026-12-28."
+  },
+  {
+   "id": "C5",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-12T11:00",
+    "date": "2026-11-18",
+    "time": "10:00"
+   },
+   "expect": false,
+   "source": "A callback may be booked for today or for one of the next two business days, at a time from 09:30 to 18:30, both included, and later than `now`. ... Business days are Monday to Friday, except these Halverin Mutual closing days: 2026-11-13, 2026-12-01, 2026-12-08, 2026-12-24, 2026-12-28."
+  },
+  {
+   "id": "C6",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-12T11:00",
+    "date": "2026-11-12",
+    "time": "18:45"
+   },
+   "expect": false,
+   "source": "A callback may be booked for today or for one of the next two business days, at a time from 09:30 to 18:30, both included, and later than `now`."
+  },
+  {
+   "id": "C7",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-11-04T10:00",
+    "product": {
+     "account_ref": "HM-SC-0417",
+     "category": "store_card",
+     "card_last4": "0417",
+     "overdue_amount": 268.3,
+     "days_past_due": 6,
+     "min_due": 41.75
+    }
+   },
+   "expect": "2026-11-19",
+   "source": "| 1 to 10 | early | the 10th business day after today | 1 | ... \"The Nth business day after today\" is found by counting business days after today, not counting today itself. The 1st business day after today is the next business day. ... Business days are Monday to Friday, except these Halverin Mutual closing days: 2026-11-13, 2026-12-01, 2026-12-08, 2026-12-24, 2026-12-28."
+  },
+  {
+   "id": "C8",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-11-27T14:00",
+    "product": {
+     "account_ref": "HM-CL-5520",
+     "category": "cash_loan",
+     "overdue_amount": 731.55,
+     "days_past_due": 22,
+     "repayment_amount": 210.4
+    }
+   },
+   "expect": "2026-12-09",
+   "source": "| 11 to 30 | middle | the 6th business day after today | 2 | ... \"The Nth business day after today\" is found by counting business days after today, not counting today itself. The 1st business day after today is the next business day. ... Business days are Monday to Friday, except these Halverin Mutual closing days: 2026-11-13, 2026-12-01, 2026-12-08, 2026-12-24, 2026-12-28."
+  },
+  {
+   "id": "C9",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-12-04T11:30",
+    "product": {
+     "account_ref": "HM-MF-9031",
+     "category": "motor_finance",
+     "overdue_amount": 1940.6,
+     "days_past_due": 44,
+     "contract_instalment": 388.12
+    }
+   },
+   "expect": "2026-12-10",
+   "source": "| 31 to 60 | late | the 3rd business day after today | 3 | ... \"The Nth business day after today\" is found by counting business days after today, not counting today itself. The 1st business day after today is the next business day. ... Business days are Monday to Friday, except these Halverin Mutual closing days: 2026-11-13, 2026-12-01, 2026-12-08, 2026-12-24, 2026-12-28."
+  },
+  {
+   "id": "C10",
+   "rule": "FL",
+   "type": "floor",
+   "input": {
+    "now": "2026-11-04T10:00",
+    "product": {
+     "account_ref": "HM-SC-0417",
+     "category": "store_card",
+     "card_last4": "0417",
+     "overdue_amount": 268.3,
+     "days_past_due": 6,
+     "min_due": 41.75
+    }
+   },
+   "expect": 41.75,
+   "source": "The **floor** is a field of the product record, and which field depends on the product's `category`: ... `store_card`: `min_due`"
+  },
+  {
+   "id": "C11",
+   "rule": "FL",
+   "type": "floor",
+   "input": {
+    "now": "2026-11-27T14:00",
+    "product": {
+     "account_ref": "HM-CL-5520",
+     "category": "cash_loan",
+     "overdue_amount": 731.55,
+     "days_past_due": 22,
+     "repayment_amount": 210.4
+    }
+   },
+   "expect": 210.4,
+   "source": "The **floor** is a field of the product record, and which field depends on the product's `category`: ... `cash_loan`: `repayment_amount`"
+  },
+  {
+   "id": "C12",
+   "rule": "FL",
+   "type": "floor",
+   "input": {
+    "now": "2026-12-04T11:30",
+    "product": {
+     "account_ref": "HM-MF-9031",
+     "category": "motor_finance",
+     "overdue_amount": 1940.6,
+     "days_past_due": 44,
+     "contract_instalment": 388.12
+    }
+   },
+   "expect": 388.12,
+   "source": "The **floor** is a field of the product record, and which field depends on the product's `category`: ... `motor_finance`: `contract_instalment`"
+  },
+  {
+   "id": "C13",
+   "rule": "ATT",
+   "type": "attempts",
+   "input": {
+    "now": "2026-11-04T10:00",
+    "product": {
+     "account_ref": "HM-SC-0417",
+     "category": "store_card",
+     "card_last4": "0417",
+     "overdue_amount": 268.3,
+     "days_past_due": 6,
+     "min_due": 41.75
+    }
+   },
+   "expect": 1,
+   "source": "| 1 to 10 | early | the 10th business day after today | 1 | ... This opening ask is not a persuasion attempt."
+  },
+  {
+   "id": "C14",
+   "rule": "ATT",
+   "type": "attempts",
+   "input": {
+    "now": "2026-11-27T14:00",
+    "product": {
+     "account_ref": "HM-CL-5520",
+     "category": "cash_loan",
+     "overdue_amount": 731.55,
+     "days_past_due": 22,
+     "repayment_amount": 210.4
+    }
+   },
+   "expect": 2,
+   "source": "| 11 to 30 | middle | the 6th business day after today | 2 | ... This opening ask is not a persuasion attempt."
+  },
+  {
+   "id": "C15",
+   "rule": "ATT",
+   "type": "attempts",
+   "input": {
+    "now": "2026-12-04T11:30",
+    "product": {
+     "account_ref": "HM-MF-9031",
+     "category": "motor_finance",
+     "overdue_amount": 1940.6,
+     "days_past_due": 44,
+     "contract_instalment": 388.12
+    }
+   },
+   "expect": 3,
+   "source": "| 31 to 60 | late | the 3rd business day after today | 3 | ... This opening ask is not a persuasion attempt."
+  },
+  {
+   "id": "C16",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-11-27T14:00",
+    "product": {
+     "account_ref": "HM-CL-5520",
+     "category": "cash_loan",
+     "overdue_amount": 731.55,
+     "days_past_due": 22,
+     "repayment_amount": 210.4
+    }
+   },
+   "expect": [
+    [
+     731.55,
+     "2026-11-30"
+    ],
+    [
+     365.0,
+     "2026-12-09"
+    ]
+   ],
+   "source": "Attempt 1: the full overdue amount on the next business day after today. ... Attempt 2: half the overdue amount, rounded down to the whole euro, on the product's deadline. If the floor is higher than that half, propose the floor instead. ... Attempt 3: the floor on the product's deadline. ... | 11 to 30 | middle | the 6th business day after today | 2 |"
+  },
+  {
+   "id": "C17",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-12-04T11:30",
+    "product": {
+     "account_ref": "HM-MF-9031",
+     "category": "motor_finance",
+     "overdue_amount": 1940.6,
+     "days_past_due": 44,
+     "contract_instalment": 388.12
+    }
+   },
+   "expect": [
+    [
+     1940.6,
+     "2026-12-07"
+    ],
+    [
+     970.0,
+     "2026-12-10"
+    ],
+    [
+     388.12,
+     "2026-12-10"
+    ]
+   ],
+   "source": "Attempt 1: the full overdue amount on the next business day after today. ... Attempt 2: half the overdue amount, rounded down to the whole euro, on the product's deadline. If the floor is higher than that half, propose the floor instead. ... Attempt 3: the floor on the product's deadline. ... | 31 to 60 | late | the 3rd business day after today | 3 |"
+  },
+  {
+   "id": "C18",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-11-12T11:00",
+    "product": {
+     "account_ref": "HM-CL-6604",
+     "category": "cash_loan",
+     "overdue_amount": 455.0,
+     "days_past_due": 3,
+     "repayment_amount": 151.67
+    }
+   },
+   "expect": [
+    [
+     455.0,
+     "2026-11-16"
+    ]
+   ],
+   "source": "Attempt 1: the full overdue amount on the next business day after today. ... Attempt 2: half the overdue amount, rounded down to the whole euro, on the product's deadline. If the floor is higher than that half, propose the floor instead. ... Attempt 3: the floor on the product's deadline. ... | 1 to 10 | early | the 10th business day after today | 1 | ... Business days are Monday to Friday, except these Halverin Mutual closing days: 2026-11-13, 2026-12-01, 2026-12-08, 2026-12-24, 2026-12-28."
+  },
+  {
+   "id": "C19",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-11-12T11:00",
+    "product": {
+     "account_ref": "HM-MF-9188",
+     "category": "motor_finance",
+     "overdue_amount": 1288.9,
+     "days_past_due": 37,
+     "contract_instalment": 702.15
+    }
+   },
+   "expect": [
+    [
+     1288.9,
+     "2026-11-16"
+    ],
+    [
+     702.15,
+     "2026-11-18"
+    ]
+   ],
+   "source": "Attempt 1: the full overdue amount on the next business day after today. ... Attempt 2: half the overdue amount, rounded down to the whole euro, on the product's deadline. If the floor is higher than that half, propose the floor instead. ... Attempt 3: the floor on the product's deadline. ... Never repeat an offer the member already refused. ... | 31 to 60 | late | the 3rd business day after today | 3 |"
+  },
+  {
+   "id": "C20",
+   "rule": "CLOSE",
+   "type": "close",
+   "input": {
+    "situation": "refused"
+   },
+   "expect": {
+    "outcome": "uncommitted",
+    "reason": "declined"
+   },
+   "source": "When a product's attempts are used up, stop for that product, note it as `declined_to_pay` (rule 33) and move to the next product. ... `declined_to_pay` gives `declined`"
+  },
+  {
+   "id": "C21",
+   "rule": "NOTE",
+   "type": "note",
+   "input": {
+    "situation": "refused"
+   },
+   "expect": "declined_to_pay",
+   "source": "When a product's attempts are used up, stop for that product, note it as `declined_to_pay` (rule 33) and move to the next product."
+  },
+  {
+   "id": "C22",
+   "rule": "NOTE",
+   "type": "note",
+   "input": {
+    "situation": "paid"
+   },
+   "expect": "paid_already",
+   "source": "take no commitment for that product and note it as `paid_already`."
+  },
+  {
+   "id": "C23",
+   "rule": "CLOSE",
+   "type": "close",
+   "input": {
+    "situation": "paid"
+   },
+   "expect": {
+    "outcome": "settled_claim",
+    "reason": ""
+   },
+   "source": "| `settled_claim` | none | no commitment was recorded and every product was noted `paid_already` |"
+  },
+  {
+   "id": "C24",
+   "rule": "CLOSE",
+   "type": "close",
+   "input": {
+    "situation": "hardship"
+   },
+   "expect": {
+    "outcome": "uncommitted",
+    "reason": "hardship"
+   },
+   "source": "Note each remaining product as `hardship`. ... `hardship` gives `hardship`"
+  },
+  {
+   "id": "C25",
+   "rule": "XFER",
+   "type": "transfer",
+   "input": {
+    "situation": "transfer_restructuring"
+   },
+   "expect": "restructure",
+   "source": "A request for a payment plan, a lower repayment or a restructure: describe nothing, call `transfer_to_agent` with queue `restructure` and close as `handed_over` / `restructure`."
+  },
+  {
+   "id": "C26",
+   "rule": "NOTE",
+   "type": "note",
+   "input": {
+    "situation": "transfer_restructuring"
+   },
+   "expect": null,
+   "source": "On any transfer, write no notes at all, before or after it."
+  }
+ ]
+}

@@ -1,0 +1,224 @@
+{
+ "checks": [
+  {
+   "id": "C1",
+   "expect": [
+    "DOB",
+    "HOUSE_NO"
+   ],
+   "source": "first date of birth (DOB), then house number (HOUSE_NO)",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C2",
+   "expect": 4,
+   "source": "The fourth failed answer in total, across both checks, ends security.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C3",
+   "expect": "19790228",
+   "source": "Send the date of birth to verify_identity as eight digits, year then month then day, with no separators.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C4",
+   "expect": false,
+   "source": "Society holidays: 2026-11-20",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C5",
+   "expect": true,
+   "source": "Rule 5.5: the callback window now closes at 19:30 instead of 17:00 ... both times are still included.",
+   "confidence": "high",
+   "note": "Memo CP-2026-19 overrides 17:00."
+  },
+  {
+   "id": "C6",
+   "expect": false,
+   "source": "the callback window now closes at 19:30",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C7",
+   "expect": false,
+   "source": "A callback may be booked for today or for the next business day",
+   "confidence": "high",
+   "note": "11-20 is a Society holiday; next business day after 11-19 is 11-23."
+  },
+  {
+   "id": "C8",
+   "expect": "2026-12-18",
+   "source": "A revolving_credit account in band B keeps the 10th business day.",
+   "confidence": "high",
+   "note": "Skips 12-11 holiday."
+  },
+  {
+   "id": "C9",
+   "expect": "2026-12-14",
+   "source": "for an instalment_loan in band B the latest promise date is now the 6th business day after today.",
+   "confidence": "high",
+   "note": "Skips 12-11 holiday."
+  },
+  {
+   "id": "C10",
+   "expect": "2026-11-27",
+   "source": "A | 1 to 14 | the 8th business day after today",
+   "confidence": "high",
+   "note": "Band A unchanged; skips 11-20 holiday."
+  },
+  {
+   "id": "C11",
+   "expect": 47.9,
+   "source": "for revolving_credit it is min_repay",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C12",
+   "expect": 307.16,
+   "source": "for instalment_loan it is scheduled_instalment",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C13",
+   "expect": 1,
+   "source": "The opening ask counts as attempt 1 for the attempt totals in 5.11.",
+   "confidence": "high",
+   "note": "Band A total 2 minus opening ask."
+  },
+  {
+   "id": "C14",
+   "expect": 2,
+   "source": "The opening ask counts as attempt 1 for the attempt totals in 5.11.",
+   "confidence": "high",
+   "note": "Band B total 3 minus opening ask."
+  },
+  {
+   "id": "C15",
+   "expect": [
+    [
+     922.48,
+     "2026-12-08"
+    ],
+    [
+     307.16,
+     "2026-12-14"
+    ]
+   ],
+   "source": "(a) attempt 2: the full arrears on the 3rd business day after today; (b) attempt 3: the floor on the latest promise date of the band.",
+   "confidence": "high",
+   "note": "IL band B deadline = 6th business day per memo."
+  },
+  {
+   "id": "C16",
+   "expect": [
+    [
+     158.35,
+     "2026-11-24"
+    ]
+   ],
+   "source": "(a) attempt 2: the full arrears on the 3rd business day after today",
+   "confidence": "high",
+   "note": "Band A total 2: only attempt 2 after opening ask; skips 11-20 holiday."
+  },
+  {
+   "id": "C17",
+   "expect": [
+    [
+     611.74,
+     "2026-11-24"
+    ],
+    [
+     64.8,
+     "2026-12-03"
+    ]
+   ],
+   "source": "(b) attempt 3: the floor on the latest promise date of the band.",
+   "confidence": "high",
+   "note": "RC band B keeps 10th business day."
+  },
+  {
+   "id": "C18",
+   "expect": {
+    "outcome": "D30",
+    "reason": "DQ"
+   },
+   "source": "Still write the N-DSP note first, then transfer to Q-DSP and close D30 / DQ.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C19",
+   "expect": "Q-DSP",
+   "source": "then transfer to Q-DSP",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C20",
+   "expect": "N-DSP",
+   "source": "Still write the N-DSP note first",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C21",
+   "expect": {
+    "outcome": "D20",
+    "reason": ""
+   },
+   "source": "Write an N-PCL note and close D20.",
+   "confidence": "high",
+   "note": "D20 has no sub-code."
+  },
+  {
+   "id": "C22",
+   "expect": "N-PCL",
+   "source": "Write an N-PCL note",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C23",
+   "expect": "Q-GEN",
+   "source": "If they still want a person, transfer to Q-GEN and close D30 / HU.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C24",
+   "expect": {
+    "outcome": "D30",
+    "reason": "HU"
+   },
+   "source": "transfer to Q-GEN and close D30 / HU.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C25",
+   "expect": null,
+   "source": "N-HRD hardship; N-DSP dispute; N-PCL customer claims already paid. No other situation is noted.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C26",
+   "expect": {
+    "outcome": "D40",
+    "reason": "HS"
+   },
+   "source": "write an N-HRD note and close D40 / HS.",
+   "confidence": "high",
+   "note": ""
+  }
+ ]
+}

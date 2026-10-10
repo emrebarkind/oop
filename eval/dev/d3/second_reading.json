@@ -1,0 +1,209 @@
+{
+ "checks": [
+  {
+   "id": "C1",
+   "expect": [
+    "home_postcode",
+    "birth_date"
+   ],
+   "source": "first the home postcode, then the date of birth. ... item set to home_postcode or birth_date",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C2",
+   "expect": 2,
+   "source": "the second wrong answer in total, on either question, ends security.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C3",
+   "expect": "KT19 8QX",
+   "source": "home_postcode: capital letters, with exactly one space before the last three characters",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C4",
+   "expect": "M14 6PL",
+   "source": "home_postcode: capital letters, with exactly one space before the last three characters",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C5",
+   "expect": "04/07/1988",
+   "source": "birth_date: DD/MM/YYYY with leading zeros",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C6",
+   "expect": 41237,
+   "source": "amount_pence: The promised amount in pence (pounds x 100), a whole number",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C7",
+   "expect": 8500,
+   "source": "amount_pence: The promised amount in pence (pounds x 100), a whole number",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C8",
+   "expect": 62,
+   "source": "The floor is 15% of arrears_gbp, rounded up to the next whole pound.",
+   "confidence": "high",
+   "note": "15% of 412.37 = 61.8555 -> 62."
+  },
+  {
+   "id": "C9",
+   "expect": 30,
+   "source": "The floor is never less than £30",
+   "confidence": "high",
+   "note": "15% of 150 = 22.5 -> 23 -> raised to 30."
+  },
+  {
+   "id": "C10",
+   "expect": 150,
+   "source": "A result that is already a whole number of pounds is not rounded further.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C11",
+   "expect": true,
+   "source": "The window is 08:30 to 20:00 from Monday to Thursday",
+   "confidence": "high",
+   "note": "11-19 is a Thursday, 17:00 later than 15:05."
+  },
+  {
+   "id": "C12",
+   "expect": false,
+   "source": "and 08:30 to 16:00 on Friday",
+   "confidence": "high",
+   "note": "11-20 is a Friday."
+  },
+  {
+   "id": "C13",
+   "expect": true,
+   "source": "08:30 to 16:00 on Friday. Both ends of the window are included.",
+   "confidence": "high",
+   "note": "16:00 is later than now 09:00."
+  },
+  {
+   "id": "C14",
+   "expect": false,
+   "source": "Penhallow Bank holidays: 2026-11-30",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C15",
+   "expect": "2026-12-24",
+   "source": "1 to 20 | early | the 9th business day after today",
+   "confidence": "high",
+   "note": "Skips 12-16 holiday."
+  },
+  {
+   "id": "C16",
+   "expect": "2026-11-27",
+   "source": "the later of the 3rd business day after today and the last business day of the current month",
+   "confidence": "high",
+   "note": "3rd bd 11-13, last bd of Nov 11-27 (11-30 holiday)."
+  },
+  {
+   "id": "C17",
+   "expect": "2026-12-01",
+   "source": "the later of the 3rd business day after today and the last business day of the current month",
+   "confidence": "high",
+   "note": "3rd bd = 12-01 (11-30 holiday), last bd of Nov = 11-27."
+  },
+  {
+   "id": "C18",
+   "expect": "2026-12-30",
+   "source": "the later of the 3rd business day after today and the last business day of the current month",
+   "confidence": "high",
+   "note": "3rd bd 12-21 (12-16 holiday), last bd of Dec 12-30 (12-31 holiday)."
+  },
+  {
+   "id": "C19",
+   "expect": 2,
+   "source": "1 to 20 | early | ... | 2",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C20",
+   "expect": 1,
+   "source": "21 to 75 | late | ... | 1",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C21",
+   "expect": [
+    [
+     412.37,
+     "2026-12-14"
+    ],
+    [
+     62,
+     "2026-12-24"
+    ]
+   ],
+   "source": "Early band. Attempt 1: the full arrears on the 2nd business day after today. Attempt 2: the floor on the deadline.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C22",
+   "expect": [
+    [
+     30,
+     "2026-12-01"
+    ]
+   ],
+   "source": "Late band. Attempt 1: the floor on the deadline.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C23",
+   "expect": {
+    "outcome": "TRANSFERRED",
+    "reason": "vulnerable"
+   },
+   "source": "call transfer_to_agent with destination arrears_support without asking first, and close as TRANSFERRED / vulnerable.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C24",
+   "expect": "arrears_support",
+   "source": "call transfer_to_agent with destination arrears_support",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C25",
+   "expect": "CLAIMS_PAID",
+   "source": "call add_note with category CLAIMS_PAID",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C26",
+   "expect": {
+    "outcome": "NO_PROMISE",
+    "reason": "dispute"
+   },
+   "source": "Call add_note with category DISPUTED and close as NO_PROMISE / dispute.",
+   "confidence": "high",
+   "note": ""
+  }
+ ]
+}

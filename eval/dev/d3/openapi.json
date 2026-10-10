@@ -1,0 +1,469 @@
+{
+ "openapi": "3.0.3",
+ "info": {
+  "title": "Penhallow Bank recoveries API",
+  "version": "1.0",
+  "description": "Mock of Penhallow Bank's recoveries systems. Note the units: get_account reports money in pounds, create_promise takes pence. The service does not enforce the brief."
+ },
+ "servers": [
+  {
+   "url": "https://penhallow-recoveries.example.invalid/v1"
+  }
+ ],
+ "components": {},
+ "paths": {
+  "/verify_identity": {
+   "post": {
+    "summary": "Check one security answer. The second wrong answer in total ends the check.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "case_id": {
+          "type": "string"
+         },
+         "item": {
+          "type": "string",
+          "enum": [
+           "home_postcode",
+           "birth_date"
+          ]
+         },
+         "response": {
+          "type": "string",
+          "description": "home_postcode: capital letters, with exactly one space before the last three characters, e.g. \"KT19 8QX\". birth_date: DD/MM/YYYY with leading zeros, e.g. \"04/07/1988\". Any other format is rejected as a wrong answer."
+         }
+        },
+        "required": [
+         "case_id",
+         "item",
+         "response"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "correct": {
+           "type": "boolean"
+          },
+          "tries_left": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/get_account": {
+   "post": {
+    "summary": "The customer's arrears product. All money values are in POUNDS (GBP) with two decimals.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "case_id": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "case_id"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "products": {
+           "type": "array",
+           "maxItems": 1,
+           "items": {
+            "type": "object",
+            "properties": {
+             "facility_id": {
+              "type": "string"
+             },
+             "kind": {
+              "type": "string",
+              "enum": [
+               "card",
+               "loan"
+              ]
+             },
+             "arrears_gbp": {
+              "type": "number",
+              "description": "amount in arrears, in pounds, e.g. 412.37"
+             },
+             "days_in_arrears": {
+              "type": "integer"
+             },
+             "card_end": {
+              "type": "string",
+              "description": "card only, last four digits"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/create_promise": {
+   "post": {
+    "summary": "Record a promise. The amount is in PENCE, as an integer.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "case_id": {
+          "type": "string"
+         },
+         "facility_id": {
+          "type": "string"
+         },
+         "amount_pence": {
+          "type": "integer",
+          "description": "The promised amount in pence (pounds x 100), a whole number: \u00a3412.37 is sent as 41237."
+         },
+         "due_date": {
+          "type": "string",
+          "format": "date"
+         }
+        },
+        "required": [
+         "case_id",
+         "facility_id",
+         "amount_pence",
+         "due_date"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          },
+          "promise_ref": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/add_note": {
+   "post": {
+    "summary": "Write a case note.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "case_id": {
+          "type": "string"
+         },
+         "facility_id": {
+          "type": "string"
+         },
+         "category": {
+          "type": "string",
+          "enum": [
+           "CLAIMS_PAID",
+           "DISPUTED"
+          ]
+         },
+         "body": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "case_id",
+         "facility_id",
+         "category"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/schedule_callback": {
+   "post": {
+    "summary": "Book a callback.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "case_id": {
+          "type": "string"
+         },
+         "date": {
+          "type": "string",
+          "format": "date"
+         },
+         "time": {
+          "type": "string",
+          "description": "HH:MM"
+         }
+        },
+        "required": [
+         "case_id",
+         "date",
+         "time"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/transfer_to_agent": {
+   "post": {
+    "summary": "Transfer to a team.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "case_id": {
+          "type": "string"
+         },
+         "destination": {
+          "type": "string",
+          "enum": [
+           "arrears_support",
+           "team_leader",
+           "payment_plans"
+          ]
+         }
+        },
+        "required": [
+         "case_id",
+         "destination"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  },
+  "/close_call": {
+   "post": {
+    "summary": "End the call. Always last.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "case_id": {
+          "type": "string"
+         },
+         "result": {
+          "type": "string",
+          "enum": [
+           "PROMISED",
+           "PAID_CLAIM",
+           "TRANSFERRED",
+           "NO_PROMISE",
+           "FAILED_ID",
+           "NOT_CONTACTED"
+          ]
+         },
+         "detail": {
+          "type": "string",
+          "enum": [
+           "vulnerable",
+           "plan_request",
+           "escalation",
+           "refusal",
+           "dispute",
+           "system_down",
+           "wrong_answers",
+           "declined_security",
+           "callback_set",
+           "no_slot",
+           "wrong_number",
+           "bereavement",
+           "inconclusive"
+          ],
+          "description": "Required for every result except PROMISED and PAID_CLAIM."
+         }
+        },
+        "required": [
+         "case_id",
+         "result"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "`ok` is false when the action was not carried out.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "error": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "The service failed. Nothing was recorded. The call may be repeated."
+     }
+    }
+   }
+  }
+ }
+}

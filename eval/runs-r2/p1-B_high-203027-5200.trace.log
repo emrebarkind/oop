@@ -1,0 +1,27 @@
+[    0.0s] START 2026-10-10T20:30:27+0000
+[    0.0s] NOTE extraction mode B
+[  100.0s] MODEL CALL #1 model=claude-opus-5-5 seconds=100.0 cost_usd=0.374 purpose: read the brief and tool API into a spec (single reading, effort high)
+[  140.8s] MODEL CALL #2 model=claude-opus-5-5 seconds=40.8 cost_usd=0.277 purpose: audit the high-risk fields of the reading against the source documents
+[  140.8s] NOTE audit: The spec is correct except for one field: the late band rolls its deadline to next month in one case where the brief says it should stay this month.
+[  140.8s] 
+[  140.8s] calendar: OK -- "Business days are Monday to Friday, except these Corran Bank holidays: 2026-11-30, 2026-12-25, 2026-12-28, 2026-12-31 and 2027-01-01." -- The workdays are 0–4 and all five holidays are listed.
+[  140.8s] date_rules: OK -- the brief does not define "next <weekday>", so the default `following_week` stands and is recorded in assumptions.
+[  140.8s] confirm: OK -- "If unclear, ask once more; if still unclear, the call is unclear." -- `max_asks` is 2.
+[  140.8s] callback: OK -- "only on a business day that is today or one of the next two business days, from 09:30 to 18:00 with both ends included, and only at a time later than `now`" / "ask once for another. If that one is also outside, book nothing." -- The spec has today plus `within_business_days:2`, `business_days_only` true, 09:30–18:00, `after_now` true and `max_asks` 2.
+[  140.8s] identity.questions: OK -- "first the postcode, then the last four digits of the account number … field `postcode` or `account_last4`" / "capital letters with every space removed … exactly four digits, keeping leading zeros" -- The postcode is `upper` with no format (so no spaces). `account_last4` is `digits` with length 4. The order is right.
+[  140.8s] identity.max_wrong: OK -- "Two wrong answers in total, on either question, end the check" (the API says the same) -- `max_wrong` is 2 and `max_wrong_per_question` is null.
+[  140.8s] identity.hints: OK -- the `verify_identity` response defines no hint field or values, so `{}` is right.
+[  140.8s] identity: OK -- "say once that the questions protect their account. A second refusal means identity is declined." -- `id_why` carries this. The response field names match the API. `purpose_is_decline` is the default because the brief says nothing.
+[  140.8s] products.amount_field: OK -- "with the `past_due` amount".
+[  140.8s] products.floor_field: OK -- "The floor is `minimum_due` for a credit card or an overdraft, and `monthly_instalment` for a personal loan."
+[  140.8s] products.floor_pct: OK -- the floor is a field, not a percentage, so null.
+[  140.8s] products: OK -- the API marks `past_due` as "pounds" and `create_promise` wants "Amount in pence", so `amount_scale` is 1 and `promise_scale` is 100. The product names follow rule 14. The id and type fields match the API.
+[  140.8s] bands: WRONG -- "If that business day is earlier than today, use the last business day of the next month" -- The late band has `roll_if_not_after_today: true`. That also rolls the deadline when this month's last business day is today. The brief rolls only when that day is earlier than today; if it is today, rule 15 allows today as the deadline. For example, on 2026-11-27 (the last business day, because 30 November is a holiday) the deadline should be 2026-11-27, not 2026-12-30. The analyst's own assumption admits this side effect. The early band (1–10, 8th business day, 1 attempt) and middle band (11–30, today + 14 days rolled forward, 2 attempts) are correct.
+[  140.8s] l
+[  140.8s] NOTE audit changed: ['bands.2.deadline.roll_if_not_after_today']
+[  140.8s] NOTE validation round 1: 1 problem(s)
+[  140.8s]   - identity.response.hint 'hint' is not a field of the verify_identity response (fields: ['all_verified', 'error', 'ok', 'verified', 'wrong_answers_left'])
+[  140.8s] NOTE repair round 1/3: repair 1 validation problem(s)
+[  189.9s] MODEL CALL #3 model=claude-opus-5-5 seconds=49.1 cost_usd=0.327 purpose: repair 1 validation problem(s) in the spec
+[  189.9s] NOTE validation round 2: 0 problem(s)
+[  189.9s] END 2026-10-10T20:33:37+0000 total_seconds=189.9 model_calls=3 model_cost_usd=0.98

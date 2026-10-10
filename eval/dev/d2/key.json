@@ -1,0 +1,392 @@
+{
+ "package": "d2",
+ "rules": {
+  "IDF": "Security asks date of birth (DOB) then house number (HOUSE_NO).",
+  "IDW": "The fourth failed answer in total ends security.",
+  "IDFMT": "Date of birth is sent as YYYYMMDD with no separators.",
+  "CAL": "Business days are Monday to Friday except the Society holidays in 5.2.",
+  "CB": "Callback today or next business day, 09:00 to 19:30 inclusive (memo changed 17:00 to 19:30), later than now.",
+  "DL": "Band A: 8th business day; band B: 10th business day, but 6th for an instalment loan (memo).",
+  "FL": "Floor is min_repay for revolving credit, scheduled_instalment for an instalment loan.",
+  "ATT": "Attempt totals 2 (A) and 3 (B) include the opening ask, so 1 and 2 proposals follow it.",
+  "LAD": "After the opening ask: full arrears on the 3rd business day; then the floor on the band's latest date.",
+  "DSP": "Disputes (memo): N-DSP note, transfer to Q-DSP, close D30/DQ.",
+  "HU": "Insisted request for a person: transfer to Q-GEN, close D30/HU.",
+  "PAID": "Already paid: N-PCL note, close D20 with no sub-code.",
+  "NOTE": "Only hardship, dispute and paid claims are noted.",
+  "CLOSE": "Other dispositions per policy section 5."
+ },
+ "checks": [
+  {
+   "id": "C1",
+   "rule": "IDF",
+   "type": "identity_fields",
+   "input": {},
+   "expect": [
+    "DOB",
+    "HOUSE_NO"
+   ],
+   "source": "5.8 Security has two checks, asked one at a time: first date of birth (`DOB`), then house number (`HOUSE_NO`)."
+  },
+  {
+   "id": "C2",
+   "rule": "IDW",
+   "type": "identity_max_wrong",
+   "input": {},
+   "expect": 4,
+   "source": "The fourth failed answer in total, across both checks, ends security."
+  },
+  {
+   "id": "C3",
+   "rule": "IDFMT",
+   "type": "id_answer",
+   "input": {
+    "field": "DOB",
+    "value": "1979-02-28"
+   },
+   "expect": "19790228",
+   "source": "Send the date of birth to `verify_identity` as eight digits, year then month then day, with no separators."
+  },
+  {
+   "id": "C4",
+   "rule": "CAL",
+   "type": "business_day",
+   "input": {
+    "date": "2026-11-20"
+   },
+   "expect": false,
+   "source": "5.1 A business day is Monday to Friday, except a Society holiday listed in 5.2. ... 5.2 Society holidays: 2026-11-20, 2026-12-11, 2026-12-23, 2026-12-29, 2027-01-05."
+  },
+  {
+   "id": "C5",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-17T12:00",
+    "date": "2026-11-18",
+    "time": "19:15"
+   },
+   "expect": true,
+   "source": "5.5 A callback may be booked for today or for the next business day, at a time from 09:00 to 17:00 (both times included) that is later than the current time. ... **Rule 5.5:** the callback window now closes at 19:30 instead of 17:00. It still opens at 09:00, and both times are still included."
+  },
+  {
+   "id": "C6",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-17T12:00",
+    "date": "2026-11-18",
+    "time": "19:45"
+   },
+   "expect": false,
+   "source": "5.5 A callback may be booked for today or for the next business day, at a time from 09:00 to 17:00 (both times included) that is later than the current time. ... **Rule 5.5:** the callback window now closes at 19:30 instead of 17:00. It still opens at 09:00, and both times are still included."
+  },
+  {
+   "id": "C7",
+   "rule": "CB",
+   "type": "callback_ok",
+   "input": {
+    "now": "2026-11-19T16:00",
+    "date": "2026-11-20",
+    "time": "10:00"
+   },
+   "expect": false,
+   "source": "5.5 A callback may be booked for today or for the next business day, at a time from 09:00 to 17:00 (both times included) that is later than the current time. ... **Rule 5.5:** the callback window now closes at 19:30 instead of 17:00. It still opens at 09:00, and both times are still included. ... 5.1 A business day is Monday to Friday, except a Society holiday listed in 5.2. ... 5.2 Society holidays: 2026-11-20, 2026-12-11, 2026-12-23, 2026-12-29, 2027-01-05."
+  },
+  {
+   "id": "C8",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-12-03T10:30",
+    "product": {
+     "agreement_no": "BBS-RC-30117",
+     "product_kind": "revolving_credit",
+     "arrears": 386.2,
+     "dpd": 30,
+     "min_repay": 47.9
+    }
+   },
+   "expect": "2026-12-18",
+   "source": "| B | 15 to 45 | the 10th business day after today | 3 | ... for an `instalment_loan` in band B the latest promise date is now the 6th business day after today. A `revolving_credit` account in band B keeps the 10th business day. ... 5.3 \"The Nth business day after today\" means: count the business days that follow today, not counting today; the Nth one counted is the date. ... 5.1 A business day is Monday to Friday, except a Society holiday listed in 5.2. ... 5.2 Society holidays: 2026-11-20, 2026-12-11, 2026-12-23, 2026-12-29, 2027-01-05."
+  },
+  {
+   "id": "C9",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-12-03T10:30",
+    "product": {
+     "agreement_no": "BBS-IL-77302",
+     "product_kind": "instalment_loan",
+     "arrears": 922.48,
+     "dpd": 30,
+     "scheduled_instalment": 307.16
+    }
+   },
+   "expect": "2026-12-14",
+   "source": "for an `instalment_loan` in band B the latest promise date is now the 6th business day after today. A `revolving_credit` account in band B keeps the 10th business day. ... 5.3 \"The Nth business day after today\" means: count the business days that follow today, not counting today; the Nth one counted is the date. ... 5.1 A business day is Monday to Friday, except a Society holiday listed in 5.2. ... 5.2 Society holidays: 2026-11-20, 2026-12-11, 2026-12-23, 2026-12-29, 2027-01-05."
+  },
+  {
+   "id": "C10",
+   "rule": "DL",
+   "type": "deadline",
+   "input": {
+    "now": "2026-11-16T09:40",
+    "product": {
+     "agreement_no": "BBS-IL-77455",
+     "product_kind": "instalment_loan",
+     "arrears": 264.1,
+     "dpd": 9,
+     "scheduled_instalment": 132.05
+    }
+   },
+   "expect": "2026-11-27",
+   "source": "| A | 1 to 14 | the 8th business day after today | 2 | ... Band A is unchanged for both products. ... 5.1 A business day is Monday to Friday, except a Society holiday listed in 5.2. ... 5.2 Society holidays: 2026-11-20, 2026-12-11, 2026-12-23, 2026-12-29, 2027-01-05."
+  },
+  {
+   "id": "C11",
+   "rule": "FL",
+   "type": "floor",
+   "input": {
+    "now": "2026-12-03T10:30",
+    "product": {
+     "agreement_no": "BBS-RC-30117",
+     "product_kind": "revolving_credit",
+     "arrears": 386.2,
+     "dpd": 30,
+     "min_repay": 47.9
+    }
+   },
+   "expect": 47.9,
+   "source": "5.13 Minimum acceptable amount (\"floor\"): for `revolving_credit` it is `min_repay`; for `instalment_loan` it is `scheduled_instalment`."
+  },
+  {
+   "id": "C12",
+   "rule": "FL",
+   "type": "floor",
+   "input": {
+    "now": "2026-12-03T10:30",
+    "product": {
+     "agreement_no": "BBS-IL-77302",
+     "product_kind": "instalment_loan",
+     "arrears": 922.48,
+     "dpd": 30,
+     "scheduled_instalment": 307.16
+    }
+   },
+   "expect": 307.16,
+   "source": "5.13 Minimum acceptable amount (\"floor\"): for `revolving_credit` it is `min_repay`; for `instalment_loan` it is `scheduled_instalment`."
+  },
+  {
+   "id": "C13",
+   "rule": "ATT",
+   "type": "attempts",
+   "input": {
+    "now": "2026-11-16T09:40",
+    "product": {
+     "agreement_no": "BBS-IL-77455",
+     "product_kind": "instalment_loan",
+     "arrears": 264.1,
+     "dpd": 9,
+     "scheduled_instalment": 132.05
+    }
+   },
+   "expect": 1,
+   "source": "| A | 1 to 14 | the 8th business day after today | 2 | ... The opening ask counts as attempt 1 for the attempt totals in 5.11."
+  },
+  {
+   "id": "C14",
+   "rule": "ATT",
+   "type": "attempts",
+   "input": {
+    "now": "2026-12-03T10:30",
+    "product": {
+     "agreement_no": "BBS-IL-77302",
+     "product_kind": "instalment_loan",
+     "arrears": 922.48,
+     "dpd": 30,
+     "scheduled_instalment": 307.16
+    }
+   },
+   "expect": 2,
+   "source": "| B | 15 to 45 | the 10th business day after today | 3 | ... The opening ask counts as attempt 1 for the attempt totals in 5.11."
+  },
+  {
+   "id": "C15",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-12-03T10:30",
+    "product": {
+     "agreement_no": "BBS-IL-77302",
+     "product_kind": "instalment_loan",
+     "arrears": 922.48,
+     "dpd": 30,
+     "scheduled_instalment": 307.16
+    }
+   },
+   "expect": [
+    [
+     922.48,
+     "2026-12-08"
+    ],
+    [
+     307.16,
+     "2026-12-14"
+    ]
+   ],
+   "source": "After the opening ask, the attempts continue in this order, while the band allows: (a) attempt 2: the full arrears on the 3rd business day after today; (b) attempt 3: the floor on the latest promise date of the band. ... for an `instalment_loan` in band B the latest promise date is now the 6th business day after today. A `revolving_credit` account in band B keeps the 10th business day. ... 5.1 A business day is Monday to Friday, except a Society holiday listed in 5.2. ... 5.2 Society holidays: 2026-11-20, 2026-12-11, 2026-12-23, 2026-12-29, 2027-01-05."
+  },
+  {
+   "id": "C16",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-11-18T11:00",
+    "product": {
+     "agreement_no": "BBS-RC-30542",
+     "product_kind": "revolving_credit",
+     "arrears": 158.35,
+     "dpd": 11,
+     "min_repay": 25.0
+    }
+   },
+   "expect": [
+    [
+     158.35,
+     "2026-11-24"
+    ]
+   ],
+   "source": "After the opening ask, the attempts continue in this order, while the band allows: (a) attempt 2: the full arrears on the 3rd business day after today; (b) attempt 3: the floor on the latest promise date of the band. ... | A | 1 to 14 | the 8th business day after today | 2 | ... The opening ask counts as attempt 1 for the attempt totals in 5.11. ... 5.1 A business day is Monday to Friday, except a Society holiday listed in 5.2. ... 5.2 Society holidays: 2026-11-20, 2026-12-11, 2026-12-23, 2026-12-29, 2027-01-05."
+  },
+  {
+   "id": "C17",
+   "rule": "LAD",
+   "type": "offers",
+   "input": {
+    "now": "2026-11-18T11:00",
+    "product": {
+     "agreement_no": "BBS-RC-30689",
+     "product_kind": "revolving_credit",
+     "arrears": 611.74,
+     "dpd": 20,
+     "min_repay": 64.8
+    }
+   },
+   "expect": [
+    [
+     611.74,
+     "2026-11-24"
+    ],
+    [
+     64.8,
+     "2026-12-03"
+    ]
+   ],
+   "source": "After the opening ask, the attempts continue in this order, while the band allows: (a) attempt 2: the full arrears on the 3rd business day after today; (b) attempt 3: the floor on the latest promise date of the band. ... | B | 15 to 45 | the 10th business day after today | 3 | ... for an `instalment_loan` in band B the latest promise date is now the 6th business day after today. A `revolving_credit` account in band B keeps the 10th business day. ... 5.1 A business day is Monday to Friday, except a Society holiday listed in 5.2. ... 5.2 Society holidays: 2026-11-20, 2026-12-11, 2026-12-23, 2026-12-29, 2027-01-05."
+  },
+  {
+   "id": "C18",
+   "rule": "DSP",
+   "type": "close",
+   "input": {
+    "situation": "dispute"
+   },
+   "expect": {
+    "outcome": "D30",
+    "reason": "DQ"
+   },
+   "source": "**Rule 5.18:** disputes now go to the Disputes team. Still write the `N-DSP` note first, then transfer to `Q-DSP` and close D30 / DQ. Do not close disputes as D40 / DS any more."
+  },
+  {
+   "id": "C19",
+   "rule": "DSP",
+   "type": "transfer",
+   "input": {
+    "situation": "dispute"
+   },
+   "expect": "Q-DSP",
+   "source": "**Rule 5.18:** disputes now go to the Disputes team. Still write the `N-DSP` note first, then transfer to `Q-DSP` and close D30 / DQ."
+  },
+  {
+   "id": "C20",
+   "rule": "DSP",
+   "type": "note",
+   "input": {
+    "situation": "dispute"
+   },
+   "expect": "N-DSP",
+   "source": "**Rule 5.18:** disputes now go to the Disputes team. Still write the `N-DSP` note first, then transfer to `Q-DSP` and close D30 / DQ."
+  },
+  {
+   "id": "C21",
+   "rule": "PAID",
+   "type": "close",
+   "input": {
+    "situation": "paid"
+   },
+   "expect": {
+    "outcome": "D20",
+    "reason": ""
+   },
+   "source": "If they say they've already paid, don't argue and don't take a PTP. Write an N-PCL note and close D20. ... | D20 | Customer says already paid. No sub-code. |"
+  },
+  {
+   "id": "C22",
+   "rule": "PAID",
+   "type": "note",
+   "input": {
+    "situation": "paid"
+   },
+   "expect": "N-PCL",
+   "source": "If they say they've already paid, don't argue and don't take a PTP. Write an N-PCL note and close D20."
+  },
+  {
+   "id": "C23",
+   "rule": "HU",
+   "type": "transfer",
+   "input": {
+    "situation": "transfer_human"
+   },
+   "expect": "Q-GEN",
+   "source": "If the customer asks for a real person, try once to help. If they still want a person, transfer to Q-GEN and close D30 / HU."
+  },
+  {
+   "id": "C24",
+   "rule": "HU",
+   "type": "close",
+   "input": {
+    "situation": "transfer_human"
+   },
+   "expect": {
+    "outcome": "D30",
+    "reason": "HU"
+   },
+   "source": "If the customer asks for a real person, try once to help. If they still want a person, transfer to Q-GEN and close D30 / HU."
+  },
+  {
+   "id": "C25",
+   "rule": "NOTE",
+   "type": "note",
+   "input": {
+    "situation": "refused"
+   },
+   "expect": null,
+   "source": "N-HRD hardship; N-DSP dispute; N-PCL customer claims already paid. No other situation is noted."
+  },
+  {
+   "id": "C26",
+   "rule": "CLOSE",
+   "type": "close",
+   "input": {
+    "situation": "hardship"
+   },
+   "expect": {
+    "outcome": "D40",
+    "reason": "HS"
+   },
+   "source": "If the customer mentions illness, bereavement, job loss or other hardship: one sentence of sympathy, no further attempts, write an `N-HRD` note and close D40 / HS."
+  }
+ ]
+}

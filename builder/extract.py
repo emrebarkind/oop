@@ -24,6 +24,8 @@ Rules:
   reuse values from examples or from your own knowledge.
 - Field names and allowed values for tool calls come from the tool API file.
 - Answer with the JSON object only."""
+if os.environ.get("BUILDER_EXTRACT_GUIDANCE"):       # optional extra reading guidance (eval/gepa_extract.py experiments)
+    SYSTEM += "\n\nAdditional guidance:\n" + pathlib.Path(os.environ["BUILDER_EXTRACT_GUIDANCE"]).read_text()
 
 
 def prompt_for(briefs, openapi):

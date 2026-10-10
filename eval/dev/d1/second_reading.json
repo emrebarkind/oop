@@ -1,0 +1,234 @@
+{
+ "checks": [
+  {
+   "id": "C1",
+   "expect": [
+    "birth_date",
+    "mobile_last4"
+   ],
+   "source": "Ask two questions, one at a time: first the date of birth, then the last four digits of the member's mobile number. Call verify_identity once per answer, with question set to birth_date or mobile_last4.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C2",
+   "expect": 2,
+   "source": "two wrong answers in total end the check.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C3",
+   "expect": false,
+   "source": "Business days are Monday to Friday, except these Halverin Mutual closing days: ... 2026-12-08",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C4",
+   "expect": true,
+   "source": "A callback may be booked for today or for one of the next two business days, at a time from 09:30 to 18:30",
+   "confidence": "high",
+   "note": "11-13 is a closing day, so the next two business days are 11-16 and 11-17."
+  },
+  {
+   "id": "C5",
+   "expect": false,
+   "source": "for today or for one of the next two business days",
+   "confidence": "high",
+   "note": "11-18 is the 3rd business day after 11-12."
+  },
+  {
+   "id": "C6",
+   "expect": false,
+   "source": "at a time from 09:30 to 18:30, both included",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C7",
+   "expect": "2026-11-19",
+   "source": "1 to 10 | early | the 10th business day after today",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C8",
+   "expect": "2026-12-09",
+   "source": "11 to 30 | middle | the 6th business day after today",
+   "confidence": "high",
+   "note": "Skips 12-01 closing day."
+  },
+  {
+   "id": "C9",
+   "expect": "2026-12-10",
+   "source": "31 to 60 | late | the 3rd business day after today",
+   "confidence": "high",
+   "note": "Skips 12-08 closing day."
+  },
+  {
+   "id": "C10",
+   "expect": 41.75,
+   "source": "store_card: min_due",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C11",
+   "expect": 210.4,
+   "source": "cash_loan: repayment_amount",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C12",
+   "expect": 388.12,
+   "source": "motor_finance: contract_instalment",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C13",
+   "expect": 1,
+   "source": "1 to 10 | early | ... | 1",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C14",
+   "expect": 2,
+   "source": "11 to 30 | middle | ... | 2",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C15",
+   "expect": 3,
+   "source": "31 to 60 | late | ... | 3",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C16",
+   "expect": [
+    [
+     731.55,
+     "2026-11-30"
+    ],
+    [
+     365,
+     "2026-12-09"
+    ]
+   ],
+   "source": "Attempt 1: the full overdue amount on the next business day after today. Attempt 2: half the overdue amount, rounded down to the whole euro, on the product's deadline.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C17",
+   "expect": [
+    [
+     1940.6,
+     "2026-12-07"
+    ],
+    [
+     970,
+     "2026-12-10"
+    ],
+    [
+     388.12,
+     "2026-12-10"
+    ]
+   ],
+   "source": "Attempt 3: the floor on the product's deadline.",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C18",
+   "expect": [
+    [
+     455.0,
+     "2026-11-16"
+    ]
+   ],
+   "source": "Attempt 1: the full overdue amount on the next business day after today.",
+   "confidence": "high",
+   "note": "Early band, 1 attempt; 11-13 closing day."
+  },
+  {
+   "id": "C19",
+   "expect": [
+    [
+     1288.9,
+     "2026-11-16"
+    ],
+    [
+     702.15,
+     "2026-11-18"
+    ]
+   ],
+   "source": "If the floor is higher than that half, propose the floor instead. ... Never repeat an offer the member already refused.",
+   "confidence": "low",
+   "note": "Half=644 < floor 702.15, so attempt 2 is the floor on the deadline; attempt 3 would be the identical offer, which rule 25 forbids, so it is dropped."
+  },
+  {
+   "id": "C20",
+   "expect": {
+    "outcome": "uncommitted",
+    "reason": "declined"
+   },
+   "source": "uncommitted | declined ... declined_to_pay gives declined",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C21",
+   "expect": "declined_to_pay",
+   "source": "When a product's attempts are used up, stop for that product, note it as declined_to_pay",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C22",
+   "expect": "paid_already",
+   "source": "take no commitment for that product and note it as paid_already",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C23",
+   "expect": {
+    "outcome": "settled_claim",
+    "reason": ""
+   },
+   "source": "settled_claim | none | no commitment was recorded and every product was noted paid_already",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C24",
+   "expect": {
+    "outcome": "uncommitted",
+    "reason": "hardship"
+   },
+   "source": "hardship gives hardship",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C25",
+   "expect": "restructure",
+   "source": "call transfer_to_agent with queue restructure",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "id": "C26",
+   "expect": null,
+   "source": "On any transfer, write no notes at all, before or after it.",
+   "confidence": "high",
+   "note": ""
+  }
+ ]
+}

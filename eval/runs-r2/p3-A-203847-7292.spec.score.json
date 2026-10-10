@@ -1,0 +1,15 @@
+{
+ "ok": 30,
+ "total": 30,
+ "accuracy": 1.0,
+ "rules": 8,
+ "missed_rules": [],
+ "failed": [],
+ "mode": "A",
+ "pkg": "p3",
+ "seconds": 326.9,
+ "cost": 1.4865,
+ "calls": 5,
+ "repairs": 2,
+ "error": ""
+}
