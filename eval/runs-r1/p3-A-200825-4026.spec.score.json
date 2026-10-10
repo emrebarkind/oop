@@ -1,0 +1,33 @@
+{
+ "ok": 28,
+ "total": 30,
+ "accuracy": 0.9333,
+ "rules": 8,
+ "missed_rules": [
+  "CB",
+  "DL"
+ ],
+ "failed": [
+  {
+   "id": "C15",
+   "rule": "DL",
+   "type": "deadline",
+   "expect": "2026-12-01",
+   "got": "2026-11-30"
+  },
+  {
+   "id": "C23",
+   "rule": "CB",
+   "type": "callback_ok",
+   "expect": false,
+   "got": true
+  }
+ ],
+ "mode": "A",
+ "pkg": "p3",
+ "seconds": 251.5,
+ "cost": 1.3375,
+ "calls": 4,
+ "repairs": 1,
+ "error": ""
+}

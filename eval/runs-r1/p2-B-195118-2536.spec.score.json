@@ -1,0 +1,53 @@
+{
+ "ok": 26,
+ "total": 30,
+ "accuracy": 0.8667,
+ "rules": 12,
+ "missed_rules": [
+  "R12",
+  "R4",
+  "R5"
+ ],
+ "failed": [
+  {
+   "id": "C9",
+   "rule": "R4",
+   "type": "attempts",
+   "expect": 0,
+   "got": 1
+  },
+  {
+   "id": "C10",
+   "rule": "R4",
+   "type": "offers",
+   "expect": [],
+   "got": [
+    [
+     233.4,
+     "2026-11-12"
+    ]
+   ]
+  },
+  {
+   "id": "C16",
+   "rule": "R5",
+   "type": "deadline",
+   "expect": "2026-12-31",
+   "got": "2026-11-27"
+  },
+  {
+   "id": "C30",
+   "rule": "R12",
+   "type": "promise_amount",
+   "expect": 8750,
+   "got": 87.5
+  }
+ ],
+ "mode": "B",
+ "pkg": "p2",
+ "seconds": 735.6,
+ "cost": 2.1235,
+ "calls": 3,
+ "repairs": 1,
+ "error": ""
+}

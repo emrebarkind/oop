@@ -1,0 +1,405 @@
+{
+ "currency_word": "pounds",
+ "calendar": {
+  "workdays": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "holidays": [
+   "2026-11-30",
+   "2026-12-11",
+   "2026-12-25",
+   "2026-12-28",
+   "2027-01-01",
+   "2027-01-04"
+  ]
+ },
+ "date_rules": {
+  "next_weekday": "following_week"
+ },
+ "confirm": {
+  "max_asks": 2
+ },
+ "callback": {
+  "days": [
+   "today",
+   "within_business_days:2"
+  ],
+  "start": "09:00",
+  "end": "18:30",
+  "after_now": true,
+  "business_days_only": true,
+  "max_asks": 2
+ },
+ "identity": {
+  "questions": [
+   {
+    "field": "date_of_birth",
+    "kind": "date",
+    "format": "%d%m%Y",
+    "ask": "What is your date of birth?"
+   },
+   {
+    "field": "postcode",
+    "kind": "upper",
+    "format": "space_before_last:3",
+    "ask": "What is the postcode of the address we hold for you?"
+   }
+  ],
+  "max_wrong": 2,
+  "max_wrong_per_question": null,
+  "date_order": "dmy",
+  "hints": {},
+  "purpose_is_decline": true,
+  "question_is_decline": false,
+  "response": {
+   "ok": "ok",
+   "verified": "verified",
+   "all_verified": "all_verified",
+   "left": "wrong_answers_left",
+   "hint": "",
+   "pass_values": [],
+   "reject_values": []
+  }
+ },
+ "products": {
+  "names": {
+   "credit_card": "credit card ending {card_last4}",
+   "personal_loan": "personal loan",
+   "overdraft": "overdraft"
+  },
+  "amount_field": "arrears_amount",
+  "days_field": "days_in_arrears",
+  "floor_field": {},
+  "floor_pct": 30,
+  "floor_names": {
+   "credit_card": "minimum amount",
+   "personal_loan": "minimum amount",
+   "overdraft": "minimum amount"
+  },
+  "amount_scale": 1,
+  "floor_round": "up_unit",
+  "list_field": "products",
+  "id_field": "product_id",
+  "type_field": "type"
+ },
+ "bands": [
+  {
+   "name": "early",
+   "min": 1,
+   "max": 14,
+   "deadline": {
+    "kind": "business_days_after",
+    "n": 8
+   },
+   "attempts": 0,
+   "ladder": null
+  },
+  {
+   "name": "mid",
+   "min": 15,
+   "max": 30,
+   "deadline": {
+    "kind": "calendar_days_after",
+    "n": 14
+   },
+   "attempts": 1,
+   "ladder": null
+  },
+  {
+   "name": "late",
+   "min": 31,
+   "max": 60,
+   "deadline": {
+    "kind": "last_business_day_of_month"
+   },
+   "attempts": 2,
+   "ladder": null
+  }
+ ],
+ "bands_outside": null,
+ "ladder": [
+  {
+   "amount": "full_or_floor",
+   "date": "business_days_after:5"
+  },
+  {
+   "amount": "floor",
+   "date": "deadline"
+  }
+ ],
+ "rules": {
+  "refuse_deadline_is_refusal": true,
+  "deadline_adjust": "previous_business_day",
+  "first_ask": "today",
+  "too_much_floor": "attempt_1",
+  "ladder_repeat_last": false
+ },
+ "after_promise": {
+  "ask_anything_else": true
+ },
+ "notes": {
+  "enabled": true
+ },
+ "multi": {
+  "clamp_single_date": true,
+  "continue_after_paid": true,
+  "continue_after_dispute": true
+ },
+ "human": {
+  "ask_first": true
+ },
+ "max_not_talk": 2,
+ "events": {
+  "promise": {
+   "outcome": "ptp",
+   "reason": ""
+  },
+  "paid": {
+   "outcome": "claims_paid",
+   "reason": "",
+   "note": "paid"
+  },
+  "transfer_restructuring": {
+   "outcome": "handoff",
+   "reason": "restructure",
+   "queue": "arrears_solutions"
+  },
+  "transfer_human": {
+   "outcome": "handoff",
+   "reason": "human",
+   "queue": "customer_care"
+  },
+  "transfer_support": {
+   "outcome": "handoff",
+   "reason": "care",
+   "queue": "care_team"
+  },
+  "refused": {
+   "outcome": "no_ptp",
+   "reason": "declined",
+   "note": "declined"
+  },
+  "hardship": {
+   "outcome": "handoff",
+   "reason": "care",
+   "note": ""
+  },
+  "dispute": {
+   "outcome": "no_ptp",
+   "reason": "dispute",
+   "note": "dispute"
+  },
+  "service_error": {
+   "outcome": "no_ptp",
+   "reason": "system_error",
+   "note": "system_error"
+  },
+  "id_failed": {
+   "outcome": "id_fail",
+   "reason": "wrong_answers"
+  },
+  "id_declined": {
+   "outcome": "id_fail",
+   "reason": "declined_id"
+  },
+  "callback": {
+   "outcome": "no_contact",
+   "reason": "callback_set"
+  },
+  "no_callback": {
+   "outcome": "no_contact",
+   "reason": "no_callback"
+  },
+  "wrong_number": {
+   "outcome": "no_contact",
+   "reason": "wrong_number"
+  },
+  "deceased": {
+   "outcome": "no_contact",
+   "reason": "deceased"
+  },
+  "unclear": {
+   "outcome": "no_contact",
+   "reason": "unclear"
+  }
+ },
+ "tool_bodies": {
+  "verify_identity": {
+   "field": "q_field",
+   "answer": "q_answer"
+  },
+  "get_account": {},
+  "create_promise": {
+   "product_id": "p_product",
+   "amount_pence": "p_amount",
+   "date": "p_date"
+  },
+  "add_note": {
+   "product_id": "n_product",
+   "reason": "n_reason"
+  },
+  "schedule_callback": {
+   "date": "cb_date",
+   "time": "cb_time"
+  },
+  "transfer_to_agent": {
+   "queue": "t_queue"
+  },
+  "close_call": {
+   "outcome": "c_outcome",
+   "reason": "c_reason"
+  }
+ },
+ "responses": {
+  "verify_identity": {
+   "field": "ok",
+   "values": [
+    true
+   ]
+  },
+  "get_account": {
+   "field": "ok",
+   "values": [
+    true
+   ]
+  },
+  "create_promise": {
+   "field": "ok",
+   "values": [
+    true
+   ]
+  },
+  "add_note": {
+   "field": "ok",
+   "values": [
+    true
+   ]
+  },
+  "schedule_callback": {
+   "field": "ok",
+   "values": [
+    true
+   ]
+  },
+  "transfer_to_agent": {
+   "field": "ok",
+   "values": [
+    true
+   ]
+  },
+  "close_call": {
+   "field": "ok",
+   "values": [
+    true
+   ]
+  }
+ },
+ "intents": {
+  "hardship": "Financial hardship: job loss, illness, cannot cover essentials.",
+  "dispute": "\"This isn't my debt\" or \"I never had that product\".",
+  "already_paid": "\"I've already paid\".",
+  "restructure": "A request for a payment plan or lower instalments.",
+  "human": "A request for a person.",
+  "too_much": "The customer says the full amount is too much."
+ },
+ "call_variables": [],
+ "lines": {
+  "opening": "Hello, this is Isla, a digital assistant calling from Glenmorrow Savings Bank. Please note that we record this call.",
+  "confirm_ask": "Am I speaking with {title} {last_name}?",
+  "robot": "Yes, I'm Isla, a digital assistant calling from Glenmorrow Savings Bank.",
+  "scam": "I understand your concern. I will never ask you for a password, and you can always call Glenmorrow Savings Bank back on the number on our website.",
+  "purpose_before_verify": "It's a personal matter, and I can explain once I've confirmed who I'm speaking with.",
+  "no_info": "I'm sorry, I don't have that information.",
+  "not_talk_once": "I understand. This will only take a few minutes.",
+  "tp_ask": "When would be a good time to reach {title} {last_name}?",
+  "tp_ask_time": "What time would be best to call back?",
+  "tp_outside_window": "I'm sorry, I can only arrange a call back between 9 am and 6:30 pm, today or on one of the next two business days. What other time would suit?",
+  "tp_no_info": "I'm sorry, I can only discuss the reason for my call with {title} {last_name}.",
+  "tp_booked": "Thank you, we'll call back on {date} at {time}.",
+  "wrong_number": "I'm sorry to have troubled you. Thank you for letting me know.",
+  "condolence": "I'm very sorry for your loss.",
+  "id_intro": "Before we go on, I need to ask you two security questions.",
+  "id_why": "These questions make sure I'm speaking with the right person.",
+  "id_explain": "I ask these questions to protect your privacy, and I can only continue once you've answered them.",
+  "id_declined": "I understand. Without the security answers I can't go any further on this call.",
+  "id_repeat": "I'm sorry, I didn't catch that. Could you repeat it, please?",
+  "id_continue": "Yes, please go on.",
+  "id_wrong": "I'm sorry, that doesn't match our records.",
+  "id_failed": "I'm sorry, I can't confirm your identity, so I can't go any further on this call. Please visit one of our branches or use online banking.",
+  "disclose_intro": "Thank you, {title} {last_name}. I'm calling about overdue payments with Glenmorrow Savings Bank.",
+  "product_line": "Your {name} has {amount} in arrears and is {days} days overdue.",
+  "ask_today": "Can you pay the full amount today?",
+  "ask_today_multi": "Can you pay both of these in full today?",
+  "next_product": "Now let's look at your {name}.",
+  "offer": "Could you pay {amount} on {date}?",
+  "offer_floor_date": "I understand. Could you pay {amount} on {date} instead?",
+  "offer_floor": "Could you pay {amount} instead?",
+  "below_floor": "I'm sorry, I can't record an amount below the minimum.",
+  "below_floor_again": "I'm sorry, that's still below the minimum.",
+  "date_past": "That date has already passed. Which date from today onwards would work for you?",
+  "not_business_day": "That day isn't a business day. Could you pay on {date} instead?",
+  "after_deadline": "I'm sorry, that's too late. The latest date I can accept is {date}. Could you pay on that day?",
+  "vague_ask": "Which exact date would that be?",
+  "propose_deadline": "Could you pay {amount} on {date}?",
+  "ask_date_for_amount": "On which date could you pay {amount}?",
+  "repeat_offer": "To repeat, could you pay {amount} on {date}?",
+  "readback_intro": "Let me read back what we agreed.",
+  "readback_item": "For your {name}, {amount} on {date}.",
+  "clamped_note": "For your {name}, the latest date I can accept is {date}, so I'll use that date.",
+  "confirm_q": "Can you confirm that's correct?",
+  "recorded": "Thank you, that's now recorded.",
+  "sms_line": "",
+  "record_failed": "I'm sorry, that promise could not be recorded because of a system problem.",
+  "paid_line": "Thank you for letting me know. Payments can take two business days to show.",
+  "dispute_line": "I understand. I won't ask you for a payment on that.",
+  "hardship": "I'm very sorry to hear that. I'm passing you to our care team, who can talk this through with you.",
+  "hardship_declined": "Of course, I understand.",
+  "hardship_short": "Shall I put you through now?",
+  "restructure_line": "I'll put you through to our arrears solutions team, who can discuss that with you.",
+  "human_ask_help": "I may be able to help you with that myself. Would you like me to try?",
+  "transfer": "Please hold while I transfer you.",
+  "offer_short": "Would that work for you?",
+  "offer_short_date": "That would be on {date}.",
+  "anything_else": "Is there anything else I can help you with?",
+  "promise_change": "I'm sorry, a promise can't be changed on this call.",
+  "go_on": "Sorry, please go on.",
+  "goodbye": "Thank you for your time. Goodbye.",
+  "callback_failed": "I'm sorry, I wasn't able to book that call back.",
+  "transfer_failed": "I'm sorry, the transfer didn't go through.",
+  "confirm_again": "Sorry, I didn't catch that. Do you confirm, yes or no?",
+  "system_error": "I'm sorry, our system isn't responding at the moment.",
+  "below_floor_final": "I'm sorry, I can't record less than {amount}.",
+  "no_band_line": "I'm not able to arrange anything for your {name} on this call."
+ },
+ "assumptions": [
+  "Conflict resolution: the memo of 19 Oct 2026 (effective 2 Nov 2026, the first pilot day) came after policy v3.2, and the email says the memo wins. The old code list of 03/09/2026 was not updated for the memo, so it loses wherever they differ.",
+  "Bands follow memo A: early 1-14, mid 15-30, late 31-60 days_in_arrears. Deadlines and attempt counts are unchanged from rule 13.",
+  "Holidays are the five bank holidays in rule 11 plus Friday 11 Dec 2026 (memo B, core banking migration), which is treated exactly like a bank holiday. 24 Dec 2026 is a normal business day. The 17 Dec Christmas lunch does not make that day a non-business day.",
+  "Reason code 'refused' is retired (memo C). 'declined' is used both as the close_call reason and as the add_note reason. This matches the API enums, which have no 'refused'.",
+  "Callback window is 09:00-18:30, both ends included (memo D replaces the 09:00-20:00 in rule 4). The rest of rule 4 stands: today or one of the next two business days, and later than now. One more ask after a bad time, then close as no_callback (rule 5).",
+  "callback.business_days_only is true because memo B forbids callbacks on non-business days. Calls are only placed on business days, so 'today' is always a business day.",
+  "Floor is 30% of arrears_amount, rounded up to the next whole pound; a whole-pound result stays as it is (rule 17). The memo confirms this and rejects 25%. monthly_payment is never used or quoted.",
+  "The brief only calls the floor 'the floor'. It is spoken as 'minimum amount', not 'minimum payment', so it is not confused with the contractual monthly_payment.",
+  "amount_scale is 1 because get_account gives amounts in pounds. create_promise takes amount_pence as a whole number of pence (rule 19 and the API: 87.50 pounds is 8750), so the promised amount must be multiplied by 100 when amount_pence is filled.",
+  "Identity: two wrong answers in total, across both questions, end the check (rule 9, confirmed by the memo and the API). Date of birth is sent as DDMMYYYY (%d%m%Y). Postcode is sent in capitals with one space before the last three characters. Postcode length varies, so no length is set. A date given only in numbers is read day-month-year (rule 8; a UK bank).",
+  "The verify_identity response has only ok, error, verified, wrong_answers_left and all_verified. It has no hint field, so response.hint is empty and hints is empty. An unreadable answer comes back as ok=false and is not counted as wrong (API).",
+  "Persuasion counting: rule 20 counts the opening ask (full arrears_amount today = step 1) as an attempt. Rule 23 counts a flat no to the two-product ask as step 1 for each product. The engine's first ask (first_ask 'today') is that step 1, so the ladder holds only steps 2 and 3. Each band's attempts value leaves out the opening ask: early 0 (1 in the brief), mid 1 (2), late 2 (3).",
+  "Rule 21 (full amount too much -> the next step offers the floor on that step's date) is set up as too_much_floor 'attempt_1' with ladder step 2 = full_or_floor. Step 3 is already the floor on the deadline.",
+  "Step 2's date is the 5th business day after today, or the deadline if that is earlier. This relies on promise dates being capped at each product's deadline (rule 15).",
+  "Late band: if today is already the last business day of the month, the deadline is the last business day of the next month (rule 14). This is assumed to be part of the last_business_day_of_month deadline kind.",
+  "A mid-band deadline that falls on a weekend or holiday moves back to the business day before (rule 14), hence deadline_adjust previous_business_day. The early and late deadlines are business days by definition.",
+  "Rule 2 requires saying the call is recorded. The opening says 'we record this call'.",
+  "Texting a payment link was dropped in the summer (email), so sms_line is empty.",
+  "Hardship: rule 28 says to tell the customer they are being passed to the care team, not to offer it, so the hardship line is a statement. The brief has no path for a customer who refuses that transfer, so the hardship event uses the brief's hardship codes, handoff/care, with no note (rule 29: no notes on any transfer).",
+  "Every product that ends without a promise gets one add_note (rule 25). A dispute or a paid claim on one product does not end the call.",
+  "Closing per rule 31: ptp and claims_paid are sent without a reason. no_ptp takes the note reason of the first product, in get_account order, that was not noted paid. After a transfer, the close is handoff with that transfer's reason.",
+  "No callback_requested event is set: the brief does not say what to do when a verified customer asks to be called back later.",
+  "bands_outside is not set: the brief only calls customers 1-60 days in arrears and gives no rule for other values.",
+  "Defaults used where the brief is silent: next_weekday following_week, purpose_is_decline true, question_is_decline false, max_not_talk 2, ask_anything_else true, refuse_deadline_is_refusal true, clamp_single_date true, a recorded promise cannot be changed on this call. The confirm_q wording is not prescribed (rule 24 only asks for one clear yes).",
+  "The pilot runs from 2 Nov to 18 Dec 2026. All date rules use the call variable now, never the real clock (rule 1)."
+ ]
+}

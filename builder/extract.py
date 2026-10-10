@@ -135,10 +135,19 @@ def validate(spec, openapi):
     if not spec["identity"].get("questions"):
         errs.append("identity.questions is empty")
     kinds = {"business_days_after", "calendar_days_after", "end_of_month", "end_of_next_month", "last_business_day_of_month", "fixed_date",
-             "end_of_week", "end_of_next_week", "day_of_next_month", "business_days_after_or_end_of_month"}
+             "end_of_week", "end_of_next_week", "day_of_next_month", "business_days_after_or_end_of_month", "later_of", "earlier_of"}
+
+    def rules_of(b):                          # every deadline rule of a band, nested ones included
+        out, todo = [], [b.get("deadline") or {}] + list((b.get("deadline_by_type") or {}).values())
+        while todo:
+            r = todo.pop()
+            out.append(r if isinstance(r, dict) else {})
+            todo += [x for x in (r.get("of") or [])] if isinstance(r, dict) else []
+        return out
     for b in spec["bands"]:
-        if b.get("deadline", {}).get("kind") not in kinds:
-            errs.append(f"band {b.get('name')}: deadline kind invalid")
+        for r in rules_of(b):
+            if r.get("kind") not in kinds:
+                errs.append(f"band {b.get('name')}: deadline kind {r.get('kind')!r} invalid")
     for s in spec["ladder"]:
         if s.get("amount") not in ("full", "floor", "full_or_floor") and not str(s.get("amount", "")).startswith("pct:"):
             errs.append(f"ladder amount {s.get('amount')} invalid")
@@ -166,12 +175,12 @@ def validate(spec, openapi):
         if d not in LADDER_DATES and not re.fullmatch(r"(business_days_after|calendar_days_after):\d+", d):
             errs.append(f"ladder date '{d}' invalid; use one of {sorted(LADDER_DATES)} or business_days_after:N / calendar_days_after:N")
     for b in spec["bands"]:
-        dk = b.get("deadline", {})
-        if dk.get("kind") in ("business_days_after", "calendar_days_after", "day_of_next_month", "business_days_after_or_end_of_month") \
-                and not isinstance(dk.get("n"), int):
-            errs.append(f"band {b.get('name')}: deadline kind {dk.get('kind')} needs an integer n")
-        if dk.get("kind") == "fixed_date" and not re.fullmatch(r"\d{4}-\d\d-\d\d", str(dk.get("value", ""))):
-            errs.append(f"band {b.get('name')}: fixed_date needs value YYYY-MM-DD")
+        for dk in rules_of(b):
+            if dk.get("kind") in ("business_days_after", "calendar_days_after", "day_of_next_month", "business_days_after_or_end_of_month") \
+                    and not isinstance(dk.get("n"), int):
+                errs.append(f"band {b.get('name')}: deadline kind {dk.get('kind')} needs an integer n")
+            if dk.get("kind") == "fixed_date" and not re.fullmatch(r"\d{4}-\d\d-\d\d", str(dk.get("value", ""))):
+                errs.append(f"band {b.get('name')}: fixed_date needs value YYYY-MM-DD")
     for d in spec["callback"].get("days", []):
         if d not in ("today", "next_business_day", "tomorrow") and not re.fullmatch(r"within_(business_)?days:\d+", str(d)):
             errs.append(f"callback.days item '{d}' invalid; use today, next_business_day, tomorrow, within_business_days:N or within_days:N")

@@ -45,6 +45,11 @@ class Calendar(Loose):
         return v
 
 
+class Window(Loose):
+    start: str = Field(pattern=HHMM)
+    end: str = Field(pattern=HHMM)
+
+
 class Callback(Loose):
     days: List[str] = []                     # empty = the brief allows no callback
     start: str = Field(pattern=HHMM)         # a window that crosses midnight (start > end) is valid
@@ -52,6 +57,14 @@ class Callback(Loose):
     after_now: bool = True
     business_days_only: bool = False
     max_asks: int = Field(default=2, ge=1)
+    windows: Dict[str, Optional[Window]] = {}  # weekday "0".."6" -> its own window, null = no callbacks that day
+
+    @field_validator("windows")
+    @classmethod
+    def _days(cls, v):
+        if any(k not in [str(i) for i in range(7)] for k in v):
+            raise ValueError("callback.windows keys must be weekday numbers \"0\" (Monday) to \"6\" (Sunday)")
+        return v
 
     @model_validator(mode="after")
     def _window(self):
@@ -86,12 +99,21 @@ class Products(Loose):
     floor_pct: Optional[Union[int, float]] = Field(default=None, ge=0, le=100)
     floor_names: Dict[str, str] = {}
     amount_scale: Union[int, float] = Field(default=1, gt=0)
+    promise_scale: Optional[Union[int, float]] = Field(default=None, gt=0)   # create_promise unit, if not amount_scale's
 
 
 class Deadline(Loose):
     kind: str
     n: Optional[int] = Field(default=None, ge=0)
     value: Optional[str] = None
+    of: Optional[List["Deadline"]] = None    # later_of / earlier_of
+    roll_if_not_after_today: bool = False
+
+    @model_validator(mode="after")
+    def _of(self):
+        if self.kind in ("later_of", "earlier_of") and len(self.of or []) < 2:
+            raise ValueError(f"deadline kind {self.kind} needs 'of' with at least two rules")
+        return self
 
 
 class Step(Loose):
@@ -104,6 +126,7 @@ class Band(Loose):
     min: int = Field(ge=0)
     max: int = Field(ge=0)
     deadline: Deadline
+    deadline_by_type: Dict[str, Deadline] = {}   # product types whose deadline differs in this band
     attempts: int = Field(ge=0)              # 0 = no persuasion in this band
     ladder: Optional[List[Step]] = None
 

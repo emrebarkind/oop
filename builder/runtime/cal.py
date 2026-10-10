@@ -89,7 +89,7 @@ def upcoming_weekday(today, weekday, include_today=False):
 
 def deadline(today, rule):
     """rule: dict(kind=..., n=...). kinds: business_days_after, calendar_days_after, end_of_month,
-    end_of_next_month, last_business_day_of_month, fixed_date (value=YYYY-MM-DD)."""
+    end_of_next_month, last_business_day_of_month, fixed_date (value=YYYY-MM-DD), later_of / earlier_of (of=[rules])."""
     kind, n = rule.get("kind"), int(rule.get("n") or 0)
     if kind == "business_days_after":
         return add_business_days(today, n)
@@ -116,6 +116,9 @@ def deadline(today, rule):
         return first.replace(day=min(max(n, 1), 28))
     if kind == "business_days_after_or_end_of_month":   # whichever comes first
         return min(add_business_days(today, n), end_of_month(today))
+    if kind in ("later_of", "earlier_of"):              # of: [rule, rule, ...]
+        ds = [deadline(today, r) for r in rule.get("of") or []]
+        return max(ds) if kind == "later_of" else min(ds)
     raise ValueError("unknown deadline kind " + str(kind))
 
 

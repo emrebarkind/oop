@@ -75,7 +75,14 @@ def blank(x):
 
 def answer(spec, c):
     t, i = c["type"], c.get("input") or {}
-    ev = lambda sit: (spec.get("events") or {}).get(sit) or {}
+    events = spec.get("events") or {}
+
+    def ev(sit):
+        # the engine offers the brief's hardship transfer through the transfer_support event; when that event has a
+        # queue, a hardship call ends there (transfer, its close codes, no other note)
+        if sit == "hardship" and (events.get("transfer_support") or {}).get("queue"):
+            return events["transfer_support"]
+        return events.get(sit) or {}
     if t == "deadline":
         _, p = facts(spec, i["now"], i["product"])
         return p["deadline"] if p["status"] == "open" else None
@@ -103,7 +110,10 @@ def answer(spec, c):
         return idn.get("max_wrong") or (None if idn.get("max_wrong_per_question") else 3)
     if t == "id_answer":
         q = question(spec, i["field"])
-        return engine.format_answer(q, str(i["value"])) if q else None
+        if not q:
+            return None
+        norm = engine.normalize_answer(q, str(i["value"]))          # what the engine makes of the answer it heard
+        return engine.format_answer(q, norm if norm not in ("", "partial") else str(i["value"]))
     if t == "promise_amount":
         return engine.promise_amount({"agreed": [float(i["amount"]), ""]})
     raise ValueError("unknown check type " + t)

@@ -1,0 +1,25 @@
+{
+ "ok": 29,
+ "total": 30,
+ "accuracy": 0.9667,
+ "rules": 10,
+ "missed_rules": [
+  "R9"
+ ],
+ "failed": [
+  {
+   "id": "C23",
+   "rule": "R9",
+   "type": "promise_amount",
+   "expect": 8550,
+   "got": 85.5
+  }
+ ],
+ "mode": "A",
+ "pkg": "p1",
+ "seconds": 237.5,
+ "cost": 1.4366,
+ "calls": 4,
+ "repairs": 1,
+ "error": ""
+}

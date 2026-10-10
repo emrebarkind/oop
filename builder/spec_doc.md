@@ -22,6 +22,8 @@ use the default shown and record it in `assumptions`.
                                                    // midnight has start > end (the days name the evening it starts on)
    "after_now": true,                              // the callback must be later than now
    "business_days_only": false,
+   "windows": {},                                  // only if some weekday has its own window: {"5": {"start": "09:00",
+                                                   // "end": "13:00"}} (weekday 0 = Monday ... 6 = Sunday; null = no callbacks)
    "max_asks": 2                                   // total asks for a time before giving up (ask once more after the first bad one = 2)
  },
  "identity": {
@@ -53,7 +55,9 @@ use the default shown and record it in `assumptions`.
    "floor_field": {"<product type>": "<account field holding the minimum acceptable amount>"},
    "floor_pct": null,                              // only if the floor is a percentage of the amount owed instead (0 = any amount)
    "floor_names": {"<product type>": "<what the brief calls the floor, e.g. minimum payment>"},
-   "amount_scale": 1,                              // 100 only if the tool API gives amounts in cents/pence (minor units)
+   "amount_scale": 1,                              // 100 only if get_account gives amounts in cents/pence (minor units)
+   "promise_scale": null,                          // only if create_promise takes another unit than get_account gives:
+                                                   // 100 when get_account is in pounds/euros but create_promise wants pence/cents
    "floor_round": null                             // with floor_pct only: "up_unit" (round up to a whole unit) or "nearest_unit"
    // If the account records have no product type, use the key "*" in names / floor_field / floor_names.
    // Optional, normally read from the tool API file: "list_field" (the array of products in the get_account
@@ -64,7 +68,13 @@ use the default shown and record it in `assumptions`.
     "deadline": {"kind": "business_days_after", "n": 12},  // kinds: business_days_after (n-th business day after today),
                                                    // calendar_days_after, end_of_month, end_of_next_month, last_business_day_of_month,
                                                    // end_of_week, end_of_next_week (last business day), day_of_next_month (n-th day),
-                                                   // business_days_after_or_end_of_month (whichever is first)
+                                                   // business_days_after_or_end_of_month (whichever is first),
+                                                   // later_of / earlier_of with "of": [rule, rule] (e.g. the later of the
+                                                   // last business day of the month and the 3rd business day).
+                                                   // "roll_if_not_after_today": true when the brief says to use the next
+                                                   // period's date if the computed one is today (e.g. 'or next month's')
+    "deadline_by_type": {},                        // only if a product type has its own deadline in this band:
+                                                   // {"<product type>": <deadline rule>}
     "attempts": 1,                                 // persuasion attempts allowed in this band
     "ladder": null}                                // only if this band has its own persuasion steps (same format as "ladder")
  ],

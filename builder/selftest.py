@@ -304,7 +304,9 @@ def run_all(spec, openapi):
             n = ev_.get(event, {}).get("note")
             return [(p, n) for p in pids] if notes_on and n else []
         spoken = [dict(k="answer", t=spoken_form(q, ident[q["field"]])) for q in spec["identity"]["questions"]]
-        full = single[0][spec["products"].get("amount_field", "past_due")]
+        P_ = spec["products"]
+        sent = lambda raw: round(raw / float(P_.get("amount_scale") or 1) * float(P_.get("promise_scale") or P_.get("amount_scale") or 1), 2)
+        full = sent(single[0][P_.get("amount_field", "past_due")])
         first_date = today.isoformat()
         if spec.get("rules", {}).get("first_ask") == "deadline":
             engine.S = spec
@@ -345,7 +347,7 @@ def run_all(spec, openapi):
                 if spec.get("rules", {}).get("first_ask") != "deadline":
                     return today.isoformat()
                 return engine.product_facts(dict(now=V0["now"]), dict(p, type=p.get(spec["products"].get("type_field", "type")), product_id=p[idf]))["deadline"]
-            prom = [(p[idf], p[spec["products"].get("amount_field", "past_due")], first_for(p)) for p in multi]
+            prom = [(p[idf], sent(p[spec["products"].get("amount_field", "past_due")]), first_for(p)) for p in multi]
             scenarios.append(("several products, all paid today", [C] + answers + [dict(k="yes"), dict(k="yes")], multi,
                               expected(spec, "promise", promises=prom)))
         for sc in scenarios:

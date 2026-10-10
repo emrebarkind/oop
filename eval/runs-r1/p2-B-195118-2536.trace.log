@@ -1,0 +1,49 @@
+[    0.0s] START 2026-10-10T19:51:18+0000
+[    0.0s] NOTE extraction mode B
+[  627.1s] MODEL CALL #1 model=claude-opus-5-5 seconds=627.1 cost_usd=1.470 purpose: read the brief and tool API into a spec (single strong reading)
+[  684.3s] MODEL CALL #2 model=claude-opus-5-5 seconds=57.2 cost_usd=0.318 purpose: audit the high-risk fields of the reading against the source documents
+[  684.3s] NOTE audit: **Audit of the Glenmorrow spec**
+[  684.3s] 
+[  684.3s] calendar: OK. Rule 11 says "Business days are Monday to Friday, except these bank holidays: 30 November 2026 …, 25 December 2026, 28 December 2026, 1 January 2027 and 4 January 2027. 24 December 2026 is a normal business day". Memo B adds "Friday 11 December 2026 is added as a non-business day … Treat it exactly like a bank holiday". The spec has all six dates and leaves out 24 Dec. The 17 Dec team lunch is correctly not treated as a holiday.
+[  684.3s] 
+[  684.3s] date_rules: OK. The materials say nothing about it, so the spec uses the default following_week and lists it in assumptions.
+[  684.3s] 
+[  684.3s] confirm: OK. Rule 3 says "If the answer is still unclear after a second ask, close as `no_contact` / `unclear`", so max_asks 2 is right.
+[  684.3s] 
+[  684.3s] callback: OK.
+[  684.3s] - Rule 4 says "today or one of the next two business days … must be later than `now`". The spec has today plus within_business_days:2, with after_now true.
+[  684.3s] - Memo D says "between 09:00 and 18:30, both included". The spec has 09:00 to 18:30.
+[  684.3s] - Memo B says "no callback may be booked on it", so business_days_only true is right.
+[  684.3s] - Rule 5 says "ask once for another time", so max_asks 2 is right.
+[  684.3s] 
+[  684.3s] identity.questions: OK.
+[  684.3s] - Rule 7 says "first the date of birth, then the postcode".
+[  684.3s] - Rule 8 and the API say "eight digits, day then month then year … `07031984`", which the spec has as %d%m%Y.
+[  684.3s] - They also say "capital letters with a single space before its last three characters", which the spec has as upper with space_before_last:3.
+[  684.3s] - Postcode length varies, so leaving out a length is right.
+[  684.3s] - The field values date_of_birth and postcode match the API enum.
+[  684.3s] 
+[  684.3s] identity.max_wrong: OK. Rule 9 says "Two wrong answers in total, across both questions, end the check". The memo says "The two-wrong-answers limit in rule 9 also stands", and the API says "Two wrong answers in total end the check". So 2, with per_question null.
+[  684.3s] 
+[  684.3s] identity.hints: OK. The verify_identity response has no hint field (only ok, error, verified, wrong_answers_left, all_verified), so {} is right.
+[  684.3s] 
+[  684.3s] identity (rest): OK.
+[  684.3s] - date_order dmy matches rule 8, "day then month then year".
+[  684.3s] - The response field names match the API. The "hint" name is the default and harmless.
+[  684.3s] - The API says "An unreadable value is rejected with ok=false and is not counted as a wrong answer". That is handled through ok, so reject_values can stay empty.
+[  684.3s] 
+[  684.3s] products.amount_field: OK. Rule 12 says "State each product with its `arrears_amount` and `days_in_arrears`". days_field is days_in_arrears.
+[  684.3s] 
+[  684.3s] products.floor_field: OK. Rule 17 says the floor is a percentage, not a field, and that "`monthly_payment` … is not the floor". So {} is right.
+[  684.3s] 
+[  684.3s] products.floor_pct: OK. Rule 17 says "30% of `arrears_amount`, rounded up to the next whole pound. A result that is already a whole number of pounds stays as it is". The memo says "Legal looked at lowering the floor to 25% and said no, so rule 17 stands". The spec has 30 with floor_round up_unit.
+[  684.3s] 
+[  684.3s] products (rest): OK, with one risk.
+[  684.3s] - The names use the
+[  684.3s] NOTE audit changed: nothing
+[  684.3s] NOTE validation round 1: 1 problem(s)
+[  684.3s]   - identity.response.hint 'hint' is not a field of the verify_identity response (fields: ['all_verified', 'error', 'ok', 'verified', 'wrong_answers_left'])
+[  684.3s] NOTE repair round 1/3: repair 1 validation problem(s)
+[  735.6s] MODEL CALL #3 model=claude-opus-5-5 seconds=51.3 cost_usd=0.336 purpose: repair 1 validation problem(s) in the spec
+[  735.6s] NOTE validation round 2: 0 problem(s)
+[  735.6s] END 2026-10-10T20:03:34+0000 total_seconds=735.6 model_calls=3 model_cost_usd=2.12

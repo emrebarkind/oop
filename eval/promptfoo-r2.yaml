@@ -1,0 +1,19 @@
+# Round 2 (engine fixes + new spec keys): A vs B with the reading at the same effort as A's readings ("high").
+description: spec extraction A vs B (equal effort)
+prompts:
+  - "{{pkg}}"
+providers:
+  - id: file://provider.py
+    label: A-two-readings-adjudicate
+    config: {mode: A}
+  - id: file://provider.py
+    label: B-one-reading-audit-effort-high
+    config: {mode: B_high}
+defaultTest:
+  assert:
+    - type: python
+      value: file://assert_key.py
+tests:
+  - vars: {pkg: p1}
+  - vars: {pkg: p2}
+  - vars: {pkg: p3}

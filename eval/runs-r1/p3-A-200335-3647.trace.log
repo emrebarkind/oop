@@ -1,0 +1,21 @@
+[    0.0s] START 2026-10-10T20:03:35+0000
+[    0.0s] NOTE extraction mode A
+[  124.6s] MODEL CALL #1 model=claude-opus-5-5 seconds=124.6 cost_usd=0.401 purpose: read the brief and tool API into a spec (reading 1)
+[  124.6s] MODEL CALL #2 model=claude-opus-5-5 seconds=124.6 cost_usd=0.428 purpose: read the brief and tool API into a spec (reading 2, independent)
+[  124.6s] NOTE readings disagree on: ['bands', 'events']
+[  183.9s] MODEL CALL #3 model=claude-opus-5-5 seconds=59.3 cost_usd=0.405 purpose: adjudicate disagreements between the two readings: bands, events
+[  183.9s] NOTE adjudication: bands: Use spec A's bands, with two changes to the middle band. The default `n` drops from 8 to 5, and the override is added under both key names, `by_type` and `by_product`. The late band likewise carries both `or_later` and `later_of`.
+[  183.9s] - Middle band: "16 to 40 | middle | credit card: the 8th business day after today; overdraft: the 5th business day after today". If the engine ignores the override, a default of 5 never allows a promise date past the overdraft deadline. A default of 8 would.
+[  183.9s] - Late band: "the last business day of the current month, or the 3rd business day after today if that is later".
+[  183.9s] 
+[  183.9s] events: Keep spec A, where `transfer_support` carries `note: "vulnerable"`. "Financial hardship … Call `add_note` with reason `vulnerable`, then `transfer_to_agent` with queue `care`, and close as `handed_over` / `vulnerable`." Rule 32 adds that the note comes "before any transfer and before `close_call`". The note has to be attached to the event that ends in the transfer, or it would not be written at all.
+[  183.9s] NOTE validation round 1: 1 problem(s)
+[  183.9s]   - spec: bands_outside event 'transfer_recoveries' must be a non-transfer event key
+[  183.9s] NOTE repair round 1/3: repair 1 validation problem(s)
+[  238.9s] MODEL CALL #4 model=claude-opus-5-5 seconds=55.0 cost_usd=0.346 purpose: repair 1 validation problem(s) in the spec
+[  238.9s] NOTE validation round 2: 1 problem(s)
+[  238.9s]   - tool_bodies.add_note must map slots ['n_product', 'n_reason']; got {'reason': 'n_reason'}
+[  238.9s] NOTE repair round 2/3: repair 1 validation problem(s)
+[  289.5s] MODEL CALL #5 model=claude-opus-5-5 seconds=50.6 cost_usd=0.337 purpose: repair 1 validation problem(s) in the spec
+[  289.5s] NOTE validation round 3: 0 problem(s)
+[  289.5s] END 2026-10-10T20:08:24+0000 total_seconds=289.5 model_calls=5 model_cost_usd=1.92

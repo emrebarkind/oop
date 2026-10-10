@@ -1,0 +1,25 @@
+{
+ "ok": 29,
+ "total": 30,
+ "accuracy": 0.9667,
+ "rules": 8,
+ "missed_rules": [
+  "DL"
+ ],
+ "failed": [
+  {
+   "id": "C15",
+   "rule": "DL",
+   "type": "deadline",
+   "expect": "2026-12-01",
+   "got": "2026-11-30"
+  }
+ ],
+ "mode": "B",
+ "pkg": "p3",
+ "seconds": 1251.0,
+ "cost": 4.0451,
+ "calls": 2,
+ "repairs": 0,
+ "error": ""
+}

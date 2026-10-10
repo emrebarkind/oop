@@ -1,0 +1,24 @@
+[    0.0s] START 2026-10-10T19:45:00+0000
+[    0.0s] NOTE extraction mode B
+[  625.3s] MODEL CALL #1 model=claude-opus-5-5 seconds=625.3 cost_usd=2.246 purpose: read the brief and tool API into a spec (single strong reading)
+[  669.9s] MODEL CALL #2 model=claude-opus-5-5 seconds=44.7 cost_usd=0.286 purpose: audit the high-risk fields of the reading against the source documents
+[  669.9s] NOTE audit: **Field-by-field audit**
+[  669.9s] 
+[  669.9s] - **calendar**: OK. The brief says "Business days are Monday to Friday, except these Corran Bank holidays: 2026-11-30, 2026-12-25, 2026-12-28, 2026-12-31 and 2027-01-01." The spec has workdays 0–4 and all five holidays.
+[  669.9s] - **date_rules**: OK. The brief never defines "next <weekday>", so the default `following_week` is kept and listed in assumptions.
+[  669.9s] - **confirm**: OK. "If unclear, ask once more; if still unclear, the call is unclear." That is 2 asks.
+[  669.9s] - **callback**: OK. "only on a business day that is today or one of the next two business days, from 09:30 to 18:00 with both ends included, and only at a time later than `now`" gives `today` + `within_business_days:2`, 09:30–18:00, `after_now` true and `business_days_only` true. "ask once for another. If that one is also outside, book nothing" gives `max_asks` 2.
+[  669.9s] - **identity.questions**: OK. "first the postcode, then the last four digits of the account number… (field `postcode` or `account_last4`)" and "Send a postcode in capital letters with every space removed… account digits as exactly four digits, keeping leading zeros". The postcode is `upper` with no length and no format (so no spaces). account_last4 is `digits` with length 4. The order is right.
+[  669.9s] - **identity.max_wrong**: OK. "Two wrong answers in total, on either question, end the check". The API says the same ("Two wrong answers in total end the check"). The spec has 2, with no per-question limit.
+[  669.9s] - **identity.hints**: OK. The verify_identity response has no hint field (only ok, error, verified, wrong_answers_left, all_verified), so `{}` and `response.hint` "" are correct.
+[  669.9s] - **identity** (rest): OK. The response field names match the API. `verified` is a boolean, so `pass_values` and `reject_values` stay empty. Rule 12 ("say once that the questions protect their account. A second refusal means identity is declined") is carried by id_why/id_explain and `id_declined`. `purpose_is_decline` keeps its default. `date_order` doesn't matter because no date question is asked.
+[  669.9s] - **products.amount_field**: OK. "with the `past_due` amount" points to `past_due`.
+[  669.9s] - **products.floor_field**: OK. "The floor is `minimum_due` for a credit card or an overdraft, and `monthly_instalment` for a personal loan."
+[  669.9s] - **products.floor_pct**: OK. The floor is a field, not a percentage, so it stays null.
+[  669.9s] - **products** (rest): OK. The names match rule 14 ("credit card ending 3307", "personal loan", "overdraft") and the API's `card_last4` field. The floor names are reasonable defaults and are listed in assumptions.
+[  669.9s]   - **amount_scale 100**: the format says to use 100 only if the API gives amounts in minor units. get_account gives pounds, but create_promise "Amount in pence, as a whole number" and rule 32 ("£85.50 is sent as `8550`") require pence when sending. Neither document says which side the field refers to, so I left the value unchanged.
+[  669.9s] - **bands**: OK.
+[  669.9s]   - early: "1 to 10 | within 8 business days | 1" and "the 8th business day after today
+[  669.9s] NOTE audit changed: nothing
+[  669.9s] NOTE validation round 1: 0 problem(s)
+[  669.9s] END 2026-10-10T19:56:10+0000 total_seconds=669.9 model_calls=2 model_cost_usd=2.53

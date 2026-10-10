@@ -178,3 +178,72 @@ def test_repair_budget_is_shared_and_bounded():
         extract.repair_behaviour = orig
     assert len(calls) == 2 and budget.used == 3                    # only what was left of the shared budget
     assert chk2["structural"]                                      # never accepted: still malformed, so no deploy
+
+
+def _facts(spec, rec, now="2026-11-24T10:00"):
+    from builder.runtime import cal, engine
+    s = comp.apply_defaults(copy.deepcopy(spec), O)
+    engine.S = s
+    cal.P = dict(workdays=s["calendar"]["workdays"], holidays=s["calendar"]["holidays"])
+    return engine.product_facts(dict(now=now), dict(rec, product_id="p1"))
+
+
+def test_percentage_floor_is_rounded_once_on_the_exact_value():
+    import test_engine_edge as E
+    spec = copy.deepcopy(E.A)
+    spec["products"].update(floor_field={}, floor_pct=30, floor_round="up_unit")
+    rec = dict(type="credit_card", days_late=12)
+    assert _facts(spec, dict(rec, past_due=333.34))["floor"] == 101.0      # 100.002 rounds up, not 100.00
+    assert _facts(spec, dict(rec, past_due=300.0))["floor"] == 90.0        # 90.00000000000001 is 90
+
+
+def test_a_floor_above_the_amount_owed_is_the_amount_owed():
+    import test_engine_edge as E
+    spec = copy.deepcopy(E.A)
+    ff = spec["products"]["floor_field"]["credit_card"]
+    assert _facts(spec, {"type": "credit_card", "days_late": 12, "past_due": 90.0, ff: 120.0})["floor"] == 90.0
+
+
+def test_promise_unit_can_differ_from_the_account_unit():
+    from builder.runtime import engine
+    import test_engine_edge as E
+    engine.S = copy.deepcopy(E.A)
+    engine.S["products"].update(amount_scale=1, promise_scale=100)
+    assert engine.promise_amount({"agreed": [85.5, ""]}) == 8550
+    engine.S["products"].pop("promise_scale")
+    assert engine.promise_amount({"agreed": [85.5, ""]}) == 85.5
+
+
+def test_composite_per_type_and_rolling_deadlines():
+    import test_engine_edge as E
+    spec = copy.deepcopy(E.A)
+    spec["calendar"]["holidays"] = []
+    b = spec["bands"][0]
+    b.update(min=1, max=30)
+    spec["bands"] = [b]
+    b["deadline"] = {"kind": "later_of", "of": [{"kind": "last_business_day_of_month"}, {"kind": "business_days_after", "n": 3}]}
+    rec = dict(type="credit_card", days_late=5, past_due=100.0)
+    assert _facts(spec, rec, "2026-11-10T10:00")["deadline"] == "2026-11-30"
+    assert _facts(spec, rec, "2026-11-27T10:00")["deadline"] == "2026-12-02"
+    b["deadline_by_type"] = {"personal_loan": {"kind": "business_days_after", "n": 2}}
+    assert _facts(spec, dict(rec, type="personal_loan"), "2026-11-10T10:00")["deadline"] == "2026-11-12"
+    b["deadline"] = {"kind": "last_business_day_of_month", "roll_if_not_after_today": True}
+    assert _facts(spec, rec, "2026-11-30T10:00")["deadline"] == "2026-12-31"
+    assert _facts(spec, rec, "2026-11-27T10:00")["deadline"] == "2026-11-30"
+    assert spec_model.check(comp.apply_defaults(copy.deepcopy(spec), O)) == []
+    assert not [e for e in extract.validate(spec, O) if "deadline" in e]
+
+
+def test_a_weekday_can_have_its_own_callback_window():
+    import datetime
+    from builder.runtime import cal, engine
+    import test_engine_edge as E
+    spec = comp.apply_defaults(copy.deepcopy(E.A), O)
+    spec["calendar"]["workdays"] = [0, 1, 2, 3, 4, 5]
+    spec["callback"].update(start="09:00", end="18:00", days=["within_business_days:2"], windows={"5": {"start": "09:00", "end": "13:00"}})
+    engine.S = spec
+    cal.P = dict(workdays=spec["calendar"]["workdays"], holidays=[])
+    V, sat = dict(now="2026-11-13T10:00"), datetime.date(2026, 11, 14)
+    assert engine.callback_ok(V, sat, "12:30") and not engine.callback_ok(V, sat, "15:00")
+    assert engine.callback_ok(V, datetime.date(2026, 11, 17), "15:00") is False      # third business day: not allowed
+    assert spec_model.check(spec) == []

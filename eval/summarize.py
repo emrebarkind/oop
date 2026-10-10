@@ -5,7 +5,8 @@ import json
 import pathlib
 import statistics as st
 
-RUNS = pathlib.Path(__file__).resolve().parent / "runs"
+import sys
+RUNS = pathlib.Path(__file__).resolve().parent / (sys.argv[1] if len(sys.argv) > 1 else "runs")
 rows = [json.load(open(f)) for f in sorted(RUNS.glob("*.score.json"))]
 by = collections.defaultdict(list)
 for r in rows:

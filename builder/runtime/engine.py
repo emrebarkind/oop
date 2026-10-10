@@ -252,15 +252,17 @@ def product_facts(V, raw):
     ff = by_type(S["products"].get("floor_field"), typ)
     floor = num(raw.get(ff)) / scale if ff and num(raw.get(ff)) is not None else None
     if floor is None and S["products"].get("floor_pct") is not None:
-        floor = round(full * float(S["products"]["floor_pct"]) / 100.0, 2)
+        exact = round(full * float(S["products"]["floor_pct"]) / 100.0, 6)   # rounding happens once, on the exact value
         fr = S["products"].get("floor_round")
         if fr == "up_unit":
-            floor = float(int(floor) + (1 if floor - int(floor) > 1e-9 else 0))
+            floor = float(int(exact) + (1 if exact - int(exact) > 1e-6 else 0))
         elif fr == "nearest_unit":
-            floor = float(int(floor + 0.5))
-        floor = min(floor, full)
+            floor = float(int(exact + 0.5))
+        else:
+            floor = round(exact, 2)
     if floor is None:
         floor = full
+    floor = min(floor, full)                      # a floor above the amount owed is the amount owed
     dl = int(num(raw.get(S["products"].get("days_field", "days_late"))) or 0)
     b = band_for(dl)
     if b is None:                                 # no band and no rule for it: no offer is made for this product
@@ -268,16 +270,10 @@ def product_facts(V, raw):
         return dict(id=str(raw.get("product_id")), type=typ, name=name, full=full, floor=floor, days_late=dl,
                     band="", deadline=iso(today), attempts=0, ladder=None, used=0, too_much=False, floor_offered=False,
                     vague_asked=False, offer=None, agreed=None, status=ev_, reason="no_band", refused_offers=[])
-    deadline = cal_deadline(today, b["deadline"])
-    adj = b["deadline"].get("adjust", S.get("rules", dict()).get("deadline_adjust", "previous_business_day"))
-    if adj != "none" and not is_business_day(deadline):
-        if adj == "next_business_day":
-            deadline = next_business_day(deadline)
-        else:
-            x = deadline
-            while not is_business_day(x) and x > today:
-                x = x - datetime.timedelta(days=1)
-            deadline = x if is_business_day(x) else next_business_day(deadline)
+    rule = (b.get("deadline_by_type") or dict()).get(typ) or b["deadline"]   # a product type with its own deadline
+    deadline = band_deadline(today, rule)
+    if rule.get("roll_if_not_after_today") and deadline <= today:     # e.g. 'or next month's if today is that day'
+        deadline = band_deadline(end_of_month(today) + datetime.timedelta(days=1), rule, today)
     return dict(id=str(raw.get("product_id")), type=typ, name=name, full=full, floor=floor, days_late=dl,
                 band=b.get("name", ""), deadline=iso(deadline), attempts=int(b.get("attempts", 1)), ladder=b.get("ladder") or None,
                 used=0, too_much=False, floor_offered=False, vague_asked=False, offer=None,
@@ -286,6 +282,22 @@ def product_facts(V, raw):
 
 def cal_deadline(today, rule):
     return deadline(today, rule)
+
+
+def band_deadline(base, rule, today=None):
+    """The rule's date counted from `base`, moved off a non-business day as the brief says (never before today)."""
+    today = today or base
+    d = cal_deadline(base, rule)
+    adj = rule.get("adjust", S.get("rules", dict()).get("deadline_adjust", "previous_business_day"))
+    if adj != "none" and not is_business_day(d):
+        if adj == "next_business_day":
+            d = next_business_day(d)
+        else:
+            x = d
+            while not is_business_day(x) and x > today:
+                x = x - datetime.timedelta(days=1)
+            d = x if is_business_day(x) else next_business_day(d)
+    return d
 
 
 # ----------------------------------------------------------------------------------------------- dates
@@ -678,6 +690,12 @@ def callback_ok(V, d, hm):
                 allowed.append(today + datetime.timedelta(days=i))
     mins = lambda x: int(x[:2]) * 60 + int(x[3:5])      # validated HH:MM values only (see spec_model)
     t, a_, b_ = mins(hm), mins(c.get("start", "00:00")), mins(c.get("end", "23:59"))
+    wins = c.get("windows") or dict()
+    if str(d.weekday()) in wins:                          # this weekday has its own window (null = no callbacks)
+        w = wins[str(d.weekday())]
+        if not w:
+            return False
+        a_, b_ = mins(w["start"]), mins(w["end"])
     if not (a_ <= t <= b_ if a_ <= b_ else (t >= a_ or t <= b_)):     # start > end: the window crosses midnight
         return False
     # d is the calendar date of the call; the allowed days name the evening a night window starts on
@@ -1718,7 +1736,8 @@ def record_next(V, s):
 
 
 def promise_amount(p):
-    scale = float(S["products"].get("amount_scale") or 1)
+    # create_promise may take another unit than get_account gives (pounds in, pence out): promise_scale, else amount_scale
+    scale = float(S["products"].get("promise_scale") or S["products"].get("amount_scale") or 1)
     a = round(p["agreed"][0] * scale, 2)
     return int(round(a)) if scale != 1 else a
 
