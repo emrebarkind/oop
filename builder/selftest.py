@@ -224,7 +224,8 @@ def simulate(spec, variables, bank, turns, max_steps=400, openapi=None):
     V = dict(variables)
 
     def feed(stage, u):
-        V.update({stage + "_kind": u.get("k", "none"), stage + "_text": u.get("t", ""), stage + "_date": u.get("d", ""),
+        text = u.get("t") or (u.get("k", "") if stage == "confirm" else "")   # the platform always
+        V.update({stage + "_kind": u.get("k", "none"), stage + "_text": text, stage + "_date": u.get("d", ""),          # copies a message
                   stage + "_amount": u.get("a", ""), stage + "_side": u.get("side", "none"),
                   stage + "_for": u.get("f", "none"), stage + "_cut": u.get("cut", "no")})
         if stage == "id":

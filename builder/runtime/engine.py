@@ -465,7 +465,12 @@ def go(V, node):
     V["next"] = node
 
 
+TEXT_STAGES = ("confirm",)    # the stage whose answer authorises a write; its _text is the customer message copied
+
+
 def talk(V, stage, s):
+    if stage in TEXT_STAGES:
+        V[stage + "_text"] = ""                        # filled again only by a new customer message (freshness)
     if not str(V.get("say", "")).strip():
         V["say"] = L("go_on") or "Sorry, could you say that again?"
     s["await"] = "talk"
@@ -2184,6 +2189,12 @@ def run(V):
         return talk(V, stage, s)
     if n is not None:
         s["turns_seen"] = n
+    elif stage in TEXT_STAGES and not str(V.get(stage + "_text") or "").strip():
+        # no counters: a valid value ("yes") does not prove a new answer. The talk node copies every customer message
+        # into <stage>_text, which the engine empties when it hands over and after use, so an empty text means no new
+        # message: nothing is used, the plan stays, the last line is said again
+        s["reask"] = True
+        return talk(V, stage, s)
     return run_turn(V, s, stage)
 
 

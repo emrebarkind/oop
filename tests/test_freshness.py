@@ -90,3 +90,16 @@ def test_without_the_counters_a_reset_value_is_still_not_an_answer():
         assert "create_promise" not in bank.led["calls"]
     finally:
         selftest.COUNTERS[0] = True
+
+
+def test_without_the_counters_an_old_valid_yes_does_not_write_and_the_plan_is_kept():
+    selftest.COUNTERS[0] = False
+    try:
+        V, bank, tr = at_readback()
+        plan = [p.get("agreed") for p in engine.st(V)["products"]]
+        V["confirm_kind"] = "yes"                     # a valid value: it does not prove that the answer is new
+        nxt, s1 = step_again(V)
+        assert nxt != "api_promise" and "create_promise" not in bank.led["calls"]
+        assert [p.get("agreed") for p in s1["products"]] == plan and s1["stage"] == "confirm"
+    finally:
+        selftest.COUNTERS[0] = True
